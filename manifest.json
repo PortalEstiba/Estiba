@@ -1,9 +1,0 @@
-
-{
-  "name":"Portal Estiba VLC",
-  "short_name":"PEV",
-  "start_url":"./index.html",
-  "display":"standalone",
-  "theme_color":"#0b2a4a",
-  "background_color":"#0b2a4a"
-}
