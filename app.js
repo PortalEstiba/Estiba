@@ -1,13 +1,9 @@
 const view = document.getElementById('view');
 
 let state = JSON.parse(localStorage.getItem('state')) || {
-  irpf: 35,
   jornales: 51,
-  periodos: {
-    '1-15': 0,
-    '16-31': 0
-  },
-  historico: []
+  irpf: 35,
+  listaJornales: []
 };
 
 function save(){ localStorage.setItem('state', JSON.stringify(state)); }
@@ -15,58 +11,64 @@ function save(){ localStorage.setItem('state', JSON.stringify(state)); }
 function go(page){
   if(page==='inicio') inicio();
   if(page==='sueldometro') sueldometro();
-  if(page==='historico') historico();
 }
 
 function inicio(){
   view.innerHTML = `
-  <div class="card">
-    <h2>Bienvenido/a</h2>
-    <p>Jornales totales: <strong>${state.jornales}</strong></p>
-  </div>`;
+    <div class="card">
+      <h2>Bienvenido/a</h2>
+      <p>Jornales totales: <strong>${state.jornales}</strong></p>
+    </div>
+  `;
 }
 
 function sueldometro(){
-  const brutoTotal = state.periodos['1-15'] + state.periodos['16-31'];
-  const neto = brutoTotal * (1 - state.irpf/100);
+  const bruto = state.listaJornales.reduce((a,b)=>a+b,0);
+  const neto = bruto * (1 - state.irpf/100);
+
+  let lista = state.listaJornales.map((j,i)=>`
+    <div class="item">
+      <span>Jornal ${i+1}</span>
+      <strong>${j.toFixed(2)} €</strong>
+    </div>
+  `).join('');
+
   view.innerHTML = `
-  <div class="card">
-    <h2>Sueldómetro</h2>
-    <label>IRPF %
-      <input type="number" value="${state.irpf}" onchange="updateIRPF(this.value)">
-    </label>
-    <h3>Periodo 1–15</h3>
-    <input type="number" placeholder="Bruto €" value="${state.periodos['1-15']}" onchange="updatePeriodo('1-15',this.value)">
-    <h3>Periodo 16–31</h3>
-    <input type="number" placeholder="Bruto €" value="${state.periodos['16-31']}" onchange="updatePeriodo('16-31',this.value)">
-    <p class="orange">Total Bruto: ${brutoTotal.toFixed(2)} €</p>
-    <p class="green">Total Neto: ${neto.toFixed(2)} €</p>
-  </div>`;
+    <div class="card">
+      <h2>💰 Sueldómetro</h2>
+
+      <label>IRPF %
+        <input type="number" value="${state.irpf}" onchange="setIRPF(this.value)">
+      </label>
+
+      <label>Precio del jornal (€)
+        <input type="number" id="precio">
+      </label>
+
+      <button class="add" onclick="addJornal()">➕ Añadir jornal</button>
+
+      <div class="list">${lista || '<p>No hay jornales añadidos.</p>'}</div>
+
+      <hr>
+
+      <p class="orange">Total Bruto: <strong>${bruto.toFixed(2)} €</strong></p>
+      <p class="green">Total Neto: <strong>${neto.toFixed(2)} €</strong></p>
+    </div>
+  `;
 }
 
-function historico(){
-  let html = `<div class="card"><h2>Histórico</h2>`;
-  if(state.historico.length===0){
-    html += `<p>No hay datos guardados.</p>`;
-  } else {
-    state.historico.forEach(h=>{
-      html += `<p>${h.fecha} → Bruto: ${h.bruto} €</p>`;
-    });
-  }
-  html += `<button onclick="guardarMes()">Guardar mes actual</button></div>`;
-  view.innerHTML = html;
-}
-
-function updateIRPF(v){ state.irpf = Number(v); save(); sueldometro(); }
-function updatePeriodo(p,v){ state.periodos[p] = Number(v); save(); sueldometro(); }
-
-function guardarMes(){
-  const bruto = state.periodos['1-15'] + state.periodos['16-31'];
-  state.historico.push({fecha:new Date().toLocaleDateString(), bruto});
-  state.periodos['1-15']=0;
-  state.periodos['16-31']=0;
+function addJornal(){
+  const v = Number(document.getElementById('precio').value);
+  if(!v) return;
+  state.listaJornales.push(v);
   save();
-  historico();
+  sueldometro();
+}
+
+function setIRPF(v){
+  state.irpf = Number(v);
+  save();
+  sueldometro();
 }
 
 go('inicio');

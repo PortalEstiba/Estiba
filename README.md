@@ -1,13 +1,14 @@
-# Portal Estiba – PWA Nivel 2
+# Portal Estiba – Réplica tipo original + Sueldómetro por jornales
 
-Incluye:
-- Navegación real entre secciones
-- Sueldómetro avanzado
-- Jornales por periodos (1–15 / 16–31)
-- Histórico mensual y anual
-- Cálculos automáticos IRPF
-- Datos dinámicos con JS
-- Persistencia en LocalStorage
+FUNCIONALIDADES:
+- Diseño y navegación tipo app original
+- Inicio limpio (solo bienvenida y jornales)
+- Sueldómetro avanzado:
+  - Añadir jornales uno a uno
+  - Precio por jornal
+  - Cálculo automático de bruto
+  - Cálculo automático de neto según IRPF
+- Datos guardados en LocalStorage
 - PWA instalable (offline)
 
-⚠️ Los datos son genéricos y editables, no copiados de capturas reales.
+NO usa datos reales ni de capturas.
