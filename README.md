@@ -1,3 +1,3 @@
-# Portal Estiba - Réplica avanzada sin login
+# Portal Estiba – Réplica avanzada sin login
 
-Réplica visual y estructural inspirada en el portal original. Acceso directo, sin autenticación.
+Incluye panel principal y apartado Sueldómetro (UI similar al original). Listo para GitHub Pages.
