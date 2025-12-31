@@ -1,4 +1,9 @@
-body{margin:0;font-family:sans-serif;background:#0e1b2c;color:#fff}
-header,footer{text-align:center;padding:15px;background:#14253d}
-main{padding:20px;display:grid;gap:15px;max-width:600px;margin:auto}
-.card{background:#1d3557;padding:15px;border-radius:8px}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui;background:#0b1d33;color:#fff}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:15px;background:#102a4d}
+.status{font-size:0.9em;color:#7CFC98}
+.menu{display:flex;gap:10px;overflow-x:auto;padding:10px;background:#0e223d}
+.menu button{background:#1c3b64;border:none;color:white;padding:10px 15px;border-radius:6px}
+.content{padding:20px;display:grid;gap:15px;max-width:700px;margin:auto}
+.card{background:#163a63;padding:15px;border-radius:10px}
+.footer{text-align:center;padding:15px;background:#102a4d;font-size:0.9em}

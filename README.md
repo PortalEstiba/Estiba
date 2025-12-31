@@ -1,3 +1,3 @@
-# Portal Estiba - Réplica
+# Portal Estiba - Réplica avanzada sin login
 
-Proyecto frontend tipo portal (login + panel) listo para GitHub.
+Réplica visual y estructural inspirada en el portal original. Acceso directo, sin autenticación.

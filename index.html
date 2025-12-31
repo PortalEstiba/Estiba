@@ -7,34 +7,46 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <h1>Portal Estiba VLC</h1>
+    <span class="status">Conectado</span>
   </header>
 
-  <main>
+  <nav class="menu">
+    <button>Avisos</button>
+    <button>Jornales</button>
+    <button>Puertas</button>
+    <button>Tablón</button>
+    <button>Perfil</button>
+  </nav>
+
+  <main class="content">
     <section class="card">
-      <h2>📢 Avisos</h2>
-      <p>No hay avisos nuevos.</p>
+      <h2>📢 Avisos recientes</h2>
+      <ul>
+        <li>No hay avisos urgentes.</li>
+        <li>Sistema operativo.</li>
+      </ul>
     </section>
 
     <section class="card">
       <h2>🛠 Jornales</h2>
-      <p>Información de jornales disponible.</p>
+      <p>Último jornal registrado: <strong>Correcto</strong></p>
     </section>
 
     <section class="card">
       <h2>🚪 Puertas</h2>
-      <p>Estado de puertas actualizado.</p>
+      <p>Puertas abiertas: 3</p>
     </section>
 
     <section class="card">
-      <h2>👤 Perfil</h2>
-      <p>Usuario invitado</p>
+      <h2>📌 Tablón</h2>
+      <p>Información general de la estiba.</p>
     </section>
   </main>
 
-  <footer>
-    <p>© Portal Estiba Réplica</p>
+  <footer class="footer">
+    © Portal Estiba Réplica
   </footer>
 </body>
 </html>
