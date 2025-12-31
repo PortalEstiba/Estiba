@@ -1,0 +1,7 @@
+body{margin:0;font-family:system-ui;background:#f2f4f8}
+.topbar{background:#0b2a4a;color:white;padding:12px;text-align:center}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:white;border-top:1px solid #ccc}
+.bottom-nav button{padding:10px;border:none;background:none}
+.card{background:white;margin:10px;padding:15px;border-radius:12px}
+.orange{color:#ff8c1a}
+.green{color:#1abc9c}
