@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,17 +12,17 @@
 
 <header class="topbar">Portal Estiba VLC</header>
 
-<nav class="top-nav">
+<nav class="tabs">
   <button onclick="go('inicio')">Inicio</button>
   <button onclick="go('sueldometro')">Sueldómetro</button>
 </nav>
 
 <main id="view"></main>
 
-<nav class="bottom-nav">
+<footer class="bottom-nav">
   <button onclick="go('inicio')">🏠</button>
   <button onclick="go('sueldometro')">💰</button>
-</nav>
+</footer>
 
 <script src="app.js"></script>
 <script>
@@ -29,6 +30,5 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
 </script>
-
 </body>
 </html>
