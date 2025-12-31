@@ -1,11 +1,13 @@
-# Portal Estiba – Réplica PWA
+# Portal Estiba – PWA Nivel 2
 
 Incluye:
 - Navegación real entre secciones
-- Sueldómetro con cálculo IRPF automático
-- Datos dinámicos con JavaScript
-- Guardado en LocalStorage
-- Convertido en PWA (instalable)
+- Sueldómetro avanzado
+- Jornales por periodos (1–15 / 16–31)
+- Histórico mensual y anual
+- Cálculos automáticos IRPF
+- Datos dinámicos con JS
+- Persistencia en LocalStorage
+- PWA instalable (offline)
 
-## Uso
-Abrir index.html o subir a GitHub Pages.
+⚠️ Los datos son genéricos y editables, no copiados de capturas reales.
