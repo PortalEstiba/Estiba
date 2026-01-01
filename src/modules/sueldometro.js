@@ -1,9 +1,9 @@
 // src/modules/sueldometro.js
-// Sueldómetro v11.3 — FIX guardar jornal (colisión de variables)
+// Sueldómetro v12 — Editar y borrar jornales
 
 import { exportCSV, exportPDF } from './exporter.js';
 
-const STORAGE_KEY = 'sueldometro_v11';
+const STORAGE_KEY = 'sueldometro_v12';
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const ESPECIALIDADES = ['Conductor 1ª','Conductor 2ª','Estiba','Trinca','Trinca de Coches','Tolva'];
@@ -14,6 +14,7 @@ const defaultState = {
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
   vista: 'quincena',
+  editId: null,
   jornales: []
 };
 
@@ -43,29 +44,16 @@ function render(container){
   const q1=mesJ.filter(j=>q(j.fecha)==='q1');
   const q2=mesJ.filter(j=>q(j.fecha)==='q2');
 
-  const rMes=resumen(mesJ);
   const r1=resumen(q1);
   const r2=resumen(q2);
 
   container.innerHTML=`
   <div class="card">
-    <h2>📊 Vista ${s.vista === 'quincena' ? 'quincenal' : 'mensual'}</h2>
-    <div class="grid">
-      <label>Mes
-        <select id="mes">${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}</select>
-      </label>
-      <label>Año <input id="anio" type="number" value="${s.anio}"></label>
-      <label>Vista
-        <select id="vista">
-          <option value="mensual" ${s.vista==='mensual'?'selected':''}>Mensual</option>
-          <option value="quincena" ${s.vista==='quincena'?'selected':''}>Quincenal</option>
-        </select>
-      </label>
-    </div>
+    <h2>📊 Vista quincenal</h2>
   </div>
 
   <div class="card">
-    <h3>➕ Añadir jornal</h3>
+    <h3>${s.editId ? '✏️ Editar jornal' : '➕ Añadir jornal'}</h3>
     <div class="grid">
       <input id="f" type="date">
       <input id="p" type="number" placeholder="Precio €">
@@ -77,76 +65,85 @@ function render(container){
       <input id="barco" placeholder="Barco">
       <input id="parte" placeholder="Parte">
     </div>
-    <button id="add" class="primary">Guardar jornal</button>
+    <button id="save" class="primary">${s.editId ? 'Actualizar' : 'Guardar'}</button>
+    ${s.editId ? '<button id="cancel">Cancelar</button>' : ''}
   </div>
 
-  ${s.vista === 'quincena' ? `
-    <div class="card">
-      <h3>📅 Quincena 1 (1–15)</h3>
-      ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
-      <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
-      <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
-    </div>
-
-    <div class="card">
-      <h3>📅 Quincena 2 (16–fin)</h3>
-      ${q2.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
-      <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
-      <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
-    </div>
-  ` : `
-    <div class="card">
-      <h3>📅 Resumen mensual</h3>
-      <p>Jornales: <strong>${rMes.count}</strong></p>
-      <p class="orange"><strong>Total Bruto Mes: ${rMes.bruto.toFixed(2)} €</strong></p>
-      <p class="green"><strong>Total Neto Mes: ${rMes.neto.toFixed(2)} €</strong></p>
-    </div>
-  `}
+  <div class="card">
+    <h3>📅 Quincena 1 (1–15)</h3>
+    ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
+    <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
+    <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
+  </div>
 
   <div class="card">
-    <h3>📤 Exportar</h3>
-    <button id="csv" class="primary">Exportar Excel</button>
-    <button id="pdf">Exportar PDF</button>
+    <h3>📅 Quincena 2 (16–fin)</h3>
+    ${q2.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
+    <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
+    <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
   </div>
   `;
 
   function fila(j){
     return `<div class="row">
-      <div><strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
+      <div>
+        <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
         <div class="muted">${j.empresa} · ${j.barco||'-'} · Parte ${j.parte||'-'}</div>
       </div>
-      <div class="right"><strong>${total(j).toFixed(2)} €</strong></div>
+      <div class="right">
+        <strong>${total(j).toFixed(2)} €</strong>
+        <button data-edit="${j.id}">✏️</button>
+        <button data-del="${j.id}" class="danger">🗑️</button>
+      </div>
     </div>`;
   }
 
-  // EVENTS
-  document.getElementById('mes').onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
-  document.getElementById('anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
-  document.getElementById('vista').onchange=e=>{s.vista=e.target.value;save(s);render(container)}
-
-  document.getElementById('add').onclick=()=>{
-    const nuevo = {
-      id: Date.now(),
-      fecha: document.getElementById('f').value,
-      precio: +document.getElementById('p').value,
-      prima: +document.getElementById('pr').value || 0,
-      irpf: +document.getElementById('i').value || 0,
-      jornada: document.getElementById('jornada').value,
-      especialidad: document.getElementById('especialidad').value,
-      empresa: document.getElementById('empresa').value,
-      barco: document.getElementById('barco').value,
-      parte: document.getElementById('parte').value
+  document.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.onclick=()=>{
+      const j=s.jornales.find(x=>x.id==btn.dataset.edit);
+      s.editId=j.id; save(s); render(container);
+      f.value=j.fecha; p.value=j.precio; pr.value=j.prima;
+      i.value=j.irpf; jornada.value=j.jornada;
+      especialidad.value=j.especialidad; empresa.value=j.empresa;
+      barco.value=j.barco; parte.value=j.parte;
     };
+  });
 
-    if(!nuevo.fecha || !nuevo.precio) return;
+  document.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick=()=>{
+      if(confirm('¿Eliminar jornal?')){
+        s.jornales=s.jornales.filter(j=>j.id!=btn.dataset.del);
+        save(s); render(container);
+      }
+    };
+  });
 
-    s.jornales.push(nuevo);
-    save(s);
-    render(container);
+  save.onclick=()=>{
+    const data={
+      id:s.editId||Date.now(),
+      fecha:f.value,
+      precio:+p.value,
+      prima:+pr.value||0,
+      irpf:+i.value||0,
+      jornada:jornada.value,
+      especialidad:especialidad.value,
+      empresa:empresa.value,
+      barco:barco.value,
+      parte:parte.value
+    };
+    if(!data.fecha||!data.precio)return;
+    if(s.editId){
+      s.jornales=s.jornales.map(j=>j.id===data.id?data:j);
+      s.editId=null;
+    }else{
+      s.jornales.push(data);
+    }
+    save(s); render(container);
   };
 
-  document.getElementById('csv').onclick=()=>exportCSV(mesJ,s.mes,s.anio)
-  document.getElementById('pdf').onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
+  if(document.getElementById('cancel')){
+    cancel.onclick=()=>{s.editId=null; save(s); render(container);}
+  }
 }
 
 export default { render };
