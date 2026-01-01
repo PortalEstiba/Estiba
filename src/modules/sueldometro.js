@@ -1,9 +1,9 @@
 // src/modules/sueldometro.js
-// Sueldómetro v8: Especialidades desplegable + Prima por jornal
+// Sueldómetro v9: Especialidades + Prima + Jornadas
 
 import { exportCSV, exportPDF } from './exporter.js';
 
-const STORAGE_KEY = 'sueldometro_v8';
+const STORAGE_KEY = 'sueldometro_v9';
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -14,6 +14,13 @@ const ESPECIALIDADES = [
   'Trinca',
   'Trinca de Coches',
   'Tolva'
+];
+
+const JORNADAS = [
+  '02-08',
+  '08-14',
+  '14-20',
+  '20-02'
 ];
 
 const defaultState = {
@@ -82,6 +89,10 @@ function render(container){
       <input id="jprecio" type="number" placeholder="Precio base €">
       <input id="jprima" type="number" placeholder="Prima €">
       <input id="jirpf" type="number" placeholder="IRPF %">
+      <select id="jjornada">
+        <option value="">Jornada</option>
+        ${JORNADAS.map(j=>`<option value="${j}">${j}</option>`).join('')}
+      </select>
       <select id="jesp">
         <option value="">Especialidad</option>
         ${ESPECIALIDADES.map(e=>`<option value="${e}">${e}</option>`).join('')}
@@ -101,7 +112,7 @@ function render(container){
     }).map(j=>`
       <div class="row">
         <div>
-          <strong>${j.fecha}</strong> · ${j.especialidad||'-'} · ${j.barco||'-'}
+          <strong>${j.fecha}</strong> · ${j.jornada||'-'} · ${j.especialidad||'-'} · ${j.barco||'-'}
           <div class="muted">
             ${j.empresa||'-'} · Parte ${j.parte||'-'} · IRPF ${j.irpf}%
             ${j.prima?`· Prima ${j.prima}€`:''}
@@ -149,6 +160,7 @@ function render(container){
       precio:+container.querySelector('#jprecio').value,
       prima:+container.querySelector('#jprima').value||0,
       irpf:+container.querySelector('#jirpf').value||0,
+      jornada:container.querySelector('#jjornada').value,
       especialidad:container.querySelector('#jesp').value,
       barco:container.querySelector('#jbarco').value,
       empresa:container.querySelector('#jempresa').value,
@@ -167,6 +179,7 @@ function render(container){
     container.querySelector('#jprecio').value=j.precio;
     container.querySelector('#jprima').value=j.prima||0;
     container.querySelector('#jirpf').value=j.irpf;
+    container.querySelector('#jjornada').value=j.jornada;
     container.querySelector('#jesp').value=j.especialidad;
     container.querySelector('#jbarco').value=j.barco;
     container.querySelector('#jempresa').value=j.empresa;
