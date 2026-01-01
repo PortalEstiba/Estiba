@@ -1,14 +1,12 @@
-
-body {
-  font-family: Arial, sans-serif;
-  background: #f1f5f9;
-  margin: 0;
-}
-
-.page {
-  display: none;
-}
-
-.page.active {
-  display: block;
-}
+/* src/styles/styles.css - additions */
+.page { display: none; }
+.page.active { display: block; }
+.card { background:#fff; border-radius:14px; padding:14px; margin:10px 0; box-shadow:0 6px 14px rgba(0,0,0,.06); }
+.grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+.primary { background:#0b2a4a; color:#fff; border:none; padding:10px; border-radius:10px; }
+.danger { background:#e74c3c; color:#fff; border:none; padding:6px 10px; border-radius:8px; }
+.row { display:flex; justify-content:space-between; align-items:center; gap:10px; border-bottom:1px solid #eee; padding:8px 0; }
+.muted { color:#7a7a7a; font-size:.9em; }
+.orange { color:#ff8c1a; }
+.green { color:#1abc9c; }
+.right { display:flex; gap:8px; align-items:center; }
