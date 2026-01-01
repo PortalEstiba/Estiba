@@ -1,13 +1,13 @@
 // src/modules/sueldometro.js
-// Sueldómetro por quincenas con LocalStorage
+// Sueldómetro con edición y borrado de jornales
 
-const STORAGE_KEY = 'sueldometro_v1';
+const STORAGE_KEY = 'sueldometro_v2';
 
 const defaultState = {
   irpf: 35,
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
-  jornales: [] // {id, fecha, precio, especialidad, barco, empresa, parte}
+  jornales: []
 };
 
 function load() {
@@ -23,8 +23,7 @@ function save(state) {
 }
 
 function quincena(dateStr) {
-  const d = new Date(dateStr).getDate();
-  return d <= 15 ? 'q1' : 'q2';
+  return new Date(dateStr).getDate() <= 15 ? 'q1' : 'q2';
 }
 
 function calc(state) {
@@ -49,95 +48,87 @@ function render(container) {
   container.innerHTML = `
     <div class="card">
       <h2>💰 Sueldómetro</h2>
-      <div class="grid">
-        <label>Mes
-          <select id="sm-mes">
-            ${Array.from({length:12}).map((_,i)=>`<option value="${i}" ${i===state.mes?'selected':''}>${i+1}</option>`).join('')}
-          </select>
-        </label>
-        <label>Año
-          <input id="sm-anio" type="number" value="${state.anio}">
-        </label>
-        <label>IRPF %
-          <input id="sm-irpf" type="number" value="${state.irpf}">
-        </label>
-      </div>
+      <label>IRPF % <input id="irpf" type="number" value="${state.irpf}"></label>
     </div>
 
     <div class="card">
-      <h3>➕ Añadir jornal</h3>
-      <div class="grid">
-        <input id="j-fecha" type="date">
-        <input id="j-precio" type="number" placeholder="Precio €">
-        <input id="j-esp" placeholder="Especialidad">
-        <input id="j-barco" placeholder="Barco">
-        <input id="j-empresa" placeholder="Empresa">
-        <input id="j-parte" placeholder="Nº Parte">
-      </div>
-      <button id="j-add" class="primary">Añadir</button>
+      <h3>➕ Añadir / Editar jornal</h3>
+      <input type="hidden" id="j-id">
+      <input id="j-fecha" type="date">
+      <input id="j-precio" type="number" placeholder="Precio €">
+      <input id="j-esp" placeholder="Especialidad">
+      <input id="j-barco" placeholder="Barco">
+      <input id="j-empresa" placeholder="Empresa">
+      <input id="j-parte" placeholder="Nº Parte">
+      <button id="j-save" class="primary">Guardar</button>
     </div>
 
     <div class="card">
-      <h3>📋 Jornales del mes</h3>
-      <div id="j-list">
-        ${state.jornales
-          .filter(j => {
-            const d = new Date(j.fecha);
-            return d.getMonth() === state.mes && d.getFullYear() === state.anio;
-          })
-          .map(j => `
-            <div class="row">
-              <div>
-                <strong>${j.fecha}</strong> · ${j.especialidad || '-'} · ${j.barco || '-'}
-                <div class="muted">${j.empresa || '-'} · Parte ${j.parte || '-'}</div>
-              </div>
-              <div class="right">
-                <strong>${j.precio.toFixed(2)} €</strong>
-                <button data-del="${j.id}" class="danger">✕</button>
-              </div>
-            </div>
-          `).join('') || '<p class="muted">No hay jornales.</p>'}
-      </div>
+      <h3>📋 Jornales</h3>
+      ${state.jornales.map(j => `
+        <div class="row">
+          <div>
+            <strong>${j.fecha}</strong> · ${j.especialidad || '-'} · ${j.barco || '-'}
+            <div class="muted">${j.empresa || '-'} · Parte ${j.parte || '-'}</div>
+          </div>
+          <div class="right">
+            <strong>${j.precio.toFixed(2)} €</strong>
+            <button data-edit="${j.id}">✏️</button>
+            <button data-del="${j.id}" class="danger">✕</button>
+          </div>
+        </div>
+      `).join('')}
     </div>
 
     <div class="card">
       <h3>📊 Resumen</h3>
-      <p class="orange">Bruto 1–15: <strong>${q1.toFixed(2)} €</strong></p>
-      <p class="orange">Bruto 16–fin: <strong>${q2.toFixed(2)} €</strong></p>
-      <p class="orange"><strong>Total Bruto: ${bruto.toFixed(2)} €</strong></p>
-      <p class="green"><strong>Total Neto: ${neto.toFixed(2)} €</strong></p>
+      <p>Bruto 1–15: ${q1.toFixed(2)} €</p>
+      <p>Bruto 16–fin: ${q2.toFixed(2)} €</p>
+      <p><strong>Total Bruto: ${bruto.toFixed(2)} €</strong></p>
+      <p><strong>Total Neto: ${neto.toFixed(2)} €</strong></p>
     </div>
   `;
 
-  // handlers
-  container.querySelector('#sm-mes').onchange = e => {
-    state.mes = Number(e.target.value); save(state); render(container);
+  container.querySelector('#irpf').onchange = e => {
+    state.irpf = Number(e.target.value);
+    save(state); render(container);
   };
-  container.querySelector('#sm-anio').onchange = e => {
-    state.anio = Number(e.target.value); save(state); render(container);
-  };
-  container.querySelector('#sm-irpf').onchange = e => {
-    state.irpf = Number(e.target.value); save(state); render(container);
-  };
-  container.querySelector('#j-add').onclick = () => {
-    const fecha = container.querySelector('#j-fecha').value;
-    const precio = Number(container.querySelector('#j-precio').value);
-    if (!fecha || !precio) return;
-    state.jornales.push({
-      id: Date.now(),
-      fecha,
-      precio,
+
+  container.querySelector('#j-save').onclick = () => {
+    const id = container.querySelector('#j-id').value;
+    const jornal = {
+      id: id ? Number(id) : Date.now(),
+      fecha: container.querySelector('#j-fecha').value,
+      precio: Number(container.querySelector('#j-precio').value),
       especialidad: container.querySelector('#j-esp').value,
       barco: container.querySelector('#j-barco').value,
       empresa: container.querySelector('#j-empresa').value,
       parte: container.querySelector('#j-parte').value
-    });
+    };
+    if (id) {
+      state.jornales = state.jornales.map(j => j.id === jornal.id ? jornal : j);
+    } else {
+      state.jornales.push(jornal);
+    }
     save(state); render(container);
   };
+
+  container.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.onclick = () => {
+      const j = state.jornales.find(x => x.id == btn.dataset.edit);
+      container.querySelector('#j-id').value = j.id;
+      container.querySelector('#j-fecha').value = j.fecha;
+      container.querySelector('#j-precio').value = j.precio;
+      container.querySelector('#j-esp').value = j.especialidad;
+      container.querySelector('#j-barco').value = j.barco;
+      container.querySelector('#j-empresa').value = j.empresa;
+      container.querySelector('#j-parte').value = j.parte;
+    };
+  });
+
   container.querySelectorAll('[data-del]').forEach(btn => {
     btn.onclick = () => {
-      const id = Number(btn.dataset.del);
-      state.jornales = state.jornales.filter(j => j.id !== id);
+      state.jornales = state.jornales.filter(j => j.id != btn.dataset.del);
       save(state); render(container);
     };
   });
