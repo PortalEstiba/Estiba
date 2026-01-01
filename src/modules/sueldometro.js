@@ -1,5 +1,5 @@
 // src/modules/sueldometro.js
-// Sueldómetro v11.2 — FIX selector vista (mensual / quincenal)
+// Sueldómetro v11.3 — FIX guardar jornal (colisión de variables)
 
 import { exportCSV, exportPDF } from './exporter.js';
 
@@ -71,11 +71,11 @@ function render(container){
       <input id="p" type="number" placeholder="Precio €">
       <input id="pr" type="number" placeholder="Prima €">
       <input id="i" type="number" placeholder="IRPF %">
-      <select id="j">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
-      <select id="e">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
-      <select id="em">${EMPRESAS.map(x=>`<option>${x}</option>`).join('')}</select>
-      <input id="b" placeholder="Barco">
-      <input id="pa" placeholder="Parte">
+      <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
+      <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
+      <select id="empresa">${EMPRESAS.map(x=>`<option>${x}</option>`).join('')}</select>
+      <input id="barco" placeholder="Barco">
+      <input id="parte" placeholder="Parte">
     </div>
     <button id="add" class="primary">Guardar jornal</button>
   </div>
@@ -120,29 +120,33 @@ function render(container){
   }
 
   // EVENTS
-  mes.onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
-  anio.onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
-  vista.onchange=e=>{s.vista=e.target.value;save(s);render(container)}
+  document.getElementById('mes').onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
+  document.getElementById('anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
+  document.getElementById('vista').onchange=e=>{s.vista=e.target.value;save(s);render(container)}
 
-  add.onclick=()=>{
-    const j={
-      id:Date.now(),
-      fecha:f.value,
-      precio:+p.value,
-      prima:+pr.value||0,
-      irpf:+i.value||0,
-      jornada:j.value,
-      especialidad:e.value,
-      empresa:em.value,
-      barco:b.value,
-      parte:pa.value
+  document.getElementById('add').onclick=()=>{
+    const nuevo = {
+      id: Date.now(),
+      fecha: document.getElementById('f').value,
+      precio: +document.getElementById('p').value,
+      prima: +document.getElementById('pr').value || 0,
+      irpf: +document.getElementById('i').value || 0,
+      jornada: document.getElementById('jornada').value,
+      especialidad: document.getElementById('especialidad').value,
+      empresa: document.getElementById('empresa').value,
+      barco: document.getElementById('barco').value,
+      parte: document.getElementById('parte').value
     };
-    if(!j.fecha||!j.precio)return;
-    s.jornales.push(j); save(s); render(container);
+
+    if(!nuevo.fecha || !nuevo.precio) return;
+
+    s.jornales.push(nuevo);
+    save(s);
+    render(container);
   };
 
-  csv.onclick=()=>exportCSV(mesJ,s.mes,s.anio)
-  pdf.onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
+  document.getElementById('csv').onclick=()=>exportCSV(mesJ,s.mes,s.anio)
+  document.getElementById('pdf').onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
 }
 
 export default { render };
