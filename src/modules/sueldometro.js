@@ -196,18 +196,24 @@ closeBtn.onclick = () => modal.classList.add('hidden');
 export function mountJornalForm(html){
   formContainer.innerHTML = html;
 }
-// === FAB usa el formulario existente ===
+
+// ================================
+// FAB + MODAL (VERSIÓN CORRECTA)
+// ================================
 const fab = document.getElementById('fabAddJornal');
 const modal = document.getElementById('modalJornal');
 const closeBtn = document.getElementById('closeModal');
-
-const originalForm = document.getElementById('formAddJornal');
 const modalContainer = document.getElementById('modalFormContainer');
 
-if (fab && originalForm && modalContainer) {
+if (fab && modal && modalContainer) {
   fab.addEventListener('click', () => {
-    modalContainer.innerHTML = '';
-    modal.classList.remove('hidden');
+    const form = document.querySelector('.add-jornal-card');
+    if (form) {
+      modalContainer.innerHTML = '';
+      modalContainer.appendChild(form);
+      form.style.display = 'block';
+      modal.classList.remove('hidden');
+    }
   });
 }
 
