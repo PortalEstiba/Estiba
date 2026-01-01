@@ -1,9 +1,9 @@
 // src/modules/sueldometro.js
-// Sueldómetro v9: Especialidades + Prima + Jornadas
+// Sueldómetro v10: Jornadas + Especialidades + Empresas + Prima
 
 import { exportCSV, exportPDF } from './exporter.js';
 
-const STORAGE_KEY = 'sueldometro_v9';
+const STORAGE_KEY = 'sueldometro_v10';
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -16,11 +16,17 @@ const ESPECIALIDADES = [
   'Tolva'
 ];
 
-const JORNADAS = [
-  '02-08',
-  '08-14',
-  '14-20',
-  '20-02'
+const JORNADAS = ['02-08','08-14','14-20','20-02'];
+
+const EMPRESAS = [
+  'CSP',
+  'APM',
+  'MSC',
+  'VTE',
+  'ERSIP',
+  'BALEARIA',
+  'GNV',
+  'TRANSMED'
 ];
 
 const defaultState = {
@@ -32,7 +38,6 @@ const defaultState = {
 function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defaultState}catch{return defaultState}}
 function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function quincena(f){ return new Date(f).getDate()<=15?'q1':'q2' }
-
 function totalJornal(j){ return j.precio + (j.prima || 0); }
 
 function calcMonth(s){
@@ -41,13 +46,12 @@ function calcMonth(s){
     const d=new Date(j.fecha);
     if(d.getMonth()===s.mes && d.getFullYear()===s.anio){
       count++;
-      const total = totalJornal(j);
+      const total=totalJornal(j);
       quincena(j.fecha)==='q1'?q1+=total:q2+=total;
-      neto += total * (1 - j.irpf/100);
+      neto+=total*(1-j.irpf/100);
     }
   });
-  const bruto=q1+q2;
-  return {q1,q2,bruto,neto,count};
+  return {q1,q2,bruto:q1+q2,neto,count};
 }
 
 function calcYear(s){
@@ -55,9 +59,9 @@ function calcYear(s){
   s.jornales.forEach(j=>{
     const d=new Date(j.fecha);
     if(d.getFullYear()===s.anio){
-      const total = totalJornal(j);
+      const total=totalJornal(j);
       bruto+=total;
-      neto+= total*(1-j.irpf/100);
+      neto+=total*(1-j.irpf/100);
     }
   });
   return {bruto,neto};
@@ -97,8 +101,11 @@ function render(container){
         <option value="">Especialidad</option>
         ${ESPECIALIDADES.map(e=>`<option value="${e}">${e}</option>`).join('')}
       </select>
+      <select id="jempresa">
+        <option value="">Empresa</option>
+        ${EMPRESAS.map(e=>`<option value="${e}">${e}</option>`).join('')}
+      </select>
       <input id="jbarco" placeholder="Barco">
-      <input id="jempresa" placeholder="Empresa">
       <input id="jparte" placeholder="Nº Parte">
     </div>
     <button id="guardar" class="primary">Guardar</button>
@@ -114,8 +121,7 @@ function render(container){
         <div>
           <strong>${j.fecha}</strong> · ${j.jornada||'-'} · ${j.especialidad||'-'} · ${j.barco||'-'}
           <div class="muted">
-            ${j.empresa||'-'} · Parte ${j.parte||'-'} · IRPF ${j.irpf}%
-            ${j.prima?`· Prima ${j.prima}€`:''}
+            ${j.empresa||'-'} · Parte ${j.parte||'-'} · IRPF ${j.irpf}% ${j.prima?`· Prima ${j.prima}€`:''}
           </div>
         </div>
         <div class="right">
@@ -130,8 +136,6 @@ function render(container){
   <div class="card">
     <h3>${MONTHS[s.mes]} ${s.anio}</h3>
     <p>Jornales: <strong>${m.count}</strong></p>
-    <p>Bruto 1–15: <strong>${m.q1.toFixed(2)} €</strong></p>
-    <p>Bruto 16–fin: <strong>${m.q2.toFixed(2)} €</strong></p>
     <p class="orange"><strong>Total Bruto Mes: ${m.bruto.toFixed(2)} €</strong></p>
     <p class="green"><strong>Total Neto Mes: ${m.neto.toFixed(2)} €</strong></p>
   </div>
@@ -162,8 +166,8 @@ function render(container){
       irpf:+container.querySelector('#jirpf').value||0,
       jornada:container.querySelector('#jjornada').value,
       especialidad:container.querySelector('#jesp').value,
-      barco:container.querySelector('#jbarco').value,
       empresa:container.querySelector('#jempresa').value,
+      barco:container.querySelector('#jbarco').value,
       parte:container.querySelector('#jparte').value
     };
     if(!j.fecha||!j.precio)return;
@@ -181,8 +185,8 @@ function render(container){
     container.querySelector('#jirpf').value=j.irpf;
     container.querySelector('#jjornada').value=j.jornada;
     container.querySelector('#jesp').value=j.especialidad;
-    container.querySelector('#jbarco').value=j.barco;
     container.querySelector('#jempresa').value=j.empresa;
+    container.querySelector('#jbarco').value=j.barco;
     container.querySelector('#jparte').value=j.parte;
   })
 
