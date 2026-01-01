@@ -137,3 +137,11 @@ input, select{
   justify-content:space-between;
   align-items:center;
 }
+
+/* Ocultar antigua tarjeta de añadir jornal */
+.add-jornal,
+.card-add-jornal,
+#addJornal,
+[data-add-jornal] {
+  display: none !important;
+}
