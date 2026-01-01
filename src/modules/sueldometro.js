@@ -1,5 +1,5 @@
 // src/modules/sueldometro.js
-// Sueldómetro v11.1 — Vista quincenal + Alta de jornales (FIX)
+// Sueldómetro v11.2 — FIX selector vista (mensual / quincenal)
 
 import { exportCSV, exportPDF } from './exporter.js';
 
@@ -43,12 +43,13 @@ function render(container){
   const q1=mesJ.filter(j=>q(j.fecha)==='q1');
   const q2=mesJ.filter(j=>q(j.fecha)==='q2');
 
+  const rMes=resumen(mesJ);
   const r1=resumen(q1);
   const r2=resumen(q2);
 
   container.innerHTML=`
   <div class="card">
-    <h2>📊 Vista quincenal</h2>
+    <h2>📊 Vista ${s.vista === 'quincena' ? 'quincenal' : 'mensual'}</h2>
     <div class="grid">
       <label>Mes
         <select id="mes">${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}</select>
@@ -56,8 +57,8 @@ function render(container){
       <label>Año <input id="anio" type="number" value="${s.anio}"></label>
       <label>Vista
         <select id="vista">
-          <option value="mes">Mensual</option>
-          <option value="quincena" selected>Quincenal</option>
+          <option value="mensual" ${s.vista==='mensual'?'selected':''}>Mensual</option>
+          <option value="quincena" ${s.vista==='quincena'?'selected':''}>Quincenal</option>
         </select>
       </label>
     </div>
@@ -79,19 +80,28 @@ function render(container){
     <button id="add" class="primary">Guardar jornal</button>
   </div>
 
-  <div class="card">
-    <h3>📅 Quincena 1 (1–15)</h3>
-    ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
-    <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
-    <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
-  </div>
+  ${s.vista === 'quincena' ? `
+    <div class="card">
+      <h3>📅 Quincena 1 (1–15)</h3>
+      ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
+      <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
+      <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
+    </div>
 
-  <div class="card">
-    <h3>📅 Quincena 2 (16–fin)</h3>
-    ${q2.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
-    <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
-    <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
-  </div>
+    <div class="card">
+      <h3>📅 Quincena 2 (16–fin)</h3>
+      ${q2.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
+      <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
+      <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
+    </div>
+  ` : `
+    <div class="card">
+      <h3>📅 Resumen mensual</h3>
+      <p>Jornales: <strong>${rMes.count}</strong></p>
+      <p class="orange"><strong>Total Bruto Mes: ${rMes.bruto.toFixed(2)} €</strong></p>
+      <p class="green"><strong>Total Neto Mes: ${rMes.neto.toFixed(2)} €</strong></p>
+    </div>
+  `}
 
   <div class="card">
     <h3>📤 Exportar</h3>
@@ -109,7 +119,12 @@ function render(container){
     </div>`;
   }
 
-  container.querySelector('#add').onclick=()=>{
+  // EVENTS
+  mes.onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
+  anio.onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
+  vista.onchange=e=>{s.vista=e.target.value;save(s);render(container)}
+
+  add.onclick=()=>{
     const j={
       id:Date.now(),
       fecha:f.value,
@@ -126,8 +141,6 @@ function render(container){
     s.jornales.push(j); save(s); render(container);
   };
 
-  mes.onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
-  anio.onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
   csv.onclick=()=>exportCSV(mesJ,s.mes,s.anio)
   pdf.onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
 }
