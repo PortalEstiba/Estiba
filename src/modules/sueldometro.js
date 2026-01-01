@@ -65,23 +65,6 @@ function render(container){
     </div>
   </div>
 
-  <div class="card">
-    <h3>${s.editId ? '✏️ Editar jornal' : '➕ Añadir jornal'}</h3>
-    <div class="grid">
-      <input id="f" type="date">
-      <input id="p" type="number" placeholder="Precio €">
-      <input id="pr" type="number" placeholder="Prima €">
-      <input id="i" type="number" placeholder="IRPF %">
-      <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
-      <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
-      <select id="empresa">${EMPRESAS.map(x=>`<option>${x}</option>`).join('')}</select>
-      <input id="barco" placeholder="Barco">
-      <input id="parte" placeholder="Parte">
-    </div>
-    <button id="add" class="primary">${s.editId ? 'Actualizar jornal' : 'Guardar jornal'}</button>
-    ${s.editId ? '<button id="cancel">Cancelar</button>' : ''}
-  </div>
-
   ${s.vista === 'quincena' ? `
     <div class="card">
       <h3>📅 Quincena 1 (1–15)</h3>
@@ -130,79 +113,57 @@ function render(container){
   document.getElementById('anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
   document.getElementById('vista').onchange=e=>{s.vista=e.target.value;save(s);render(container)}
 
-  document.getElementById('add').onclick=()=>{
-    const data={
-      id: s.editId || Date.now(),
-      fecha: f.value,
-      precio: +p.value,
-      prima: +pr.value || 0,
-      irpf: +i.value || 0,
-      jornada: jornada.value,
-      especialidad: especialidad.value,
-      empresa: empresa.value,
-      barco: barco.value,
-      parte: parte.value
-    };
-
-    if(!data.fecha||!data.precio)return;
-
-    if(s.editId){
-      s.jornales=s.jornales.map(j=>j.id===data.id?data:j);
-      s.editId=null;
-    }else{
-      s.jornales.push(data);
-    }
-    save(s); render(container);
-  };
-
-  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
-    const j=s.jornales.find(x=>x.id==b.dataset.edit);
-    s.editId=j.id; save(s); render(container);
-    f.value=j.fecha; p.value=j.precio; pr.value=j.prima;
-    i.value=j.irpf; jornada.value=j.jornada;
-    especialidad.value=j.especialidad; empresa.value=j.empresa;
-    barco.value=j.barco||''; parte.value=j.parte||'';
-  });
-
-  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
-    if(confirm('¿Eliminar jornal?')){
-      s.jornales=s.jornales.filter(j=>j.id!=b.dataset.del);
-      save(s); render(container);
-    }
-  });
-
-  if(document.getElementById('cancel')){
-    cancel.onclick=()=>{s.editId=null; save(s); render(container);}
-  }
-
   document.getElementById('csv').onclick=()=>exportCSV(mesJ,s.mes,s.anio)
   document.getElementById('pdf').onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
 }
 
-export default { render };
+/* ================================
+   FAB + MODAL — FORM DINÁMICO
+   ================================ */
 
-// ================================
-// FAB + MODAL (VERSIÓN CORRECTA)
-// ================================
 const fab = document.getElementById('fabAddJornal');
 const modal = document.getElementById('modalJornal');
 const closeBtn = document.getElementById('closeModal');
 const modalContainer = document.getElementById('modalFormContainer');
 
-if (fab && modal && modalContainer) {
-  fab.addEventListener('click', () => {
-    const form = document.querySelector('.add-jornal-card');
-    if (form) {
-      modalContainer.innerHTML = '';
-      modalContainer.appendChild(form);
-      form.style.display = 'block';
-      modal.classList.remove('hidden');
-    }
-  });
-}
+fab?.addEventListener('click', () => {
+  modalContainer.innerHTML = `
+    <div class="grid">
+      <input id="f" type="date">
+      <input id="p" type="number" placeholder="Precio €">
+      <input id="pr" type="number" placeholder="Prima €">
+      <input id="i" type="number" placeholder="IRPF %">
+      <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
+      <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
+      <select id="empresa">${EMPRESAS.map(x=>`<option>${x}</option>`).join('')}</select>
+      <input id="barco" placeholder="Barco">
+      <input id="parte" placeholder="Parte">
+    </div>
+    <button id="guardar" class="primary">Guardar jornal</button>
+  `;
+  modal.classList.remove('hidden');
 
-closeBtn?.addEventListener('click', () => {
-  modal.classList.add('hidden');
+  document.getElementById('guardar').onclick = () => {
+    const s=load();
+    s.jornales.push({
+      id:Date.now(),
+      fecha:f.value,
+      precio:+p.value,
+      prima:+pr.value||0,
+      irpf:+i.value||0,
+      jornada:jornada.value,
+      especialidad:especialidad.value,
+      empresa:empresa.value,
+      barco:barco.value,
+      parte:parte.value
+    });
+    save(s);
+    modal.classList.add('hidden');
+    render(document.getElementById('page-sueldometro'));
+  };
 });
 
+closeBtn?.addEventListener('click',()=>modal.classList.add('hidden'));
+
+export default { render };
 
