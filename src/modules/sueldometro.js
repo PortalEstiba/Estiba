@@ -196,5 +196,24 @@ closeBtn.onclick = () => modal.classList.add('hidden');
 export function mountJornalForm(html){
   formContainer.innerHTML = html;
 }
+// === FAB usa el formulario existente ===
+const fab = document.getElementById('fabAddJornal');
+const modal = document.getElementById('modalJornal');
+const closeBtn = document.getElementById('closeModal');
+
+const originalForm = document.getElementById('formAddJornal');
+const modalContainer = document.getElementById('modalFormContainer');
+
+if (fab && originalForm && modalContainer) {
+  fab.addEventListener('click', () => {
+    modalContainer.innerHTML = '';
+    modalContainer.appendChild(originalForm);
+    modal.classList.remove('hidden');
+  });
+}
+
+closeBtn?.addEventListener('click', () => {
+  modal.classList.add('hidden');
+});
 
 export default { render };
