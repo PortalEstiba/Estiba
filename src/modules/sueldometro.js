@@ -1,5 +1,5 @@
 // src/modules/sueldometro.js
-// Sueldómetro v11.3 — FIX guardar jornal (colisión de variables)
+// Sueldómetro v11.4 — Editar y borrar jornales SIN perder funciones
 
 import { exportCSV, exportPDF } from './exporter.js';
 
@@ -14,6 +14,7 @@ const defaultState = {
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
   vista: 'quincena',
+  editId: null,
   jornales: []
 };
 
@@ -65,7 +66,7 @@ function render(container){
   </div>
 
   <div class="card">
-    <h3>➕ Añadir jornal</h3>
+    <h3>${s.editId ? '✏️ Editar jornal' : '➕ Añadir jornal'}</h3>
     <div class="grid">
       <input id="f" type="date">
       <input id="p" type="number" placeholder="Precio €">
@@ -77,7 +78,8 @@ function render(container){
       <input id="barco" placeholder="Barco">
       <input id="parte" placeholder="Parte">
     </div>
-    <button id="add" class="primary">Guardar jornal</button>
+    <button id="add" class="primary">${s.editId ? 'Actualizar jornal' : 'Guardar jornal'}</button>
+    ${s.editId ? '<button id="cancel">Cancelar</button>' : ''}
   </div>
 
   ${s.vista === 'quincena' ? `
@@ -112,38 +114,66 @@ function render(container){
 
   function fila(j){
     return `<div class="row">
-      <div><strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
+      <div>
+        <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
         <div class="muted">${j.empresa} · ${j.barco||'-'} · Parte ${j.parte||'-'}</div>
       </div>
-      <div class="right"><strong>${total(j).toFixed(2)} €</strong></div>
+      <div class="right">
+        <strong>${total(j).toFixed(2)} €</strong>
+        <button data-edit="${j.id}">✏️</button>
+        <button data-del="${j.id}" class="danger">🗑️</button>
+      </div>
     </div>`;
   }
 
-  // EVENTS
   document.getElementById('mes').onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
   document.getElementById('anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
   document.getElementById('vista').onchange=e=>{s.vista=e.target.value;save(s);render(container)}
 
   document.getElementById('add').onclick=()=>{
-    const nuevo = {
-      id: Date.now(),
-      fecha: document.getElementById('f').value,
-      precio: +document.getElementById('p').value,
-      prima: +document.getElementById('pr').value || 0,
-      irpf: +document.getElementById('i').value || 0,
-      jornada: document.getElementById('jornada').value,
-      especialidad: document.getElementById('especialidad').value,
-      empresa: document.getElementById('empresa').value,
-      barco: document.getElementById('barco').value,
-      parte: document.getElementById('parte').value
+    const data={
+      id: s.editId || Date.now(),
+      fecha: f.value,
+      precio: +p.value,
+      prima: +pr.value || 0,
+      irpf: +i.value || 0,
+      jornada: jornada.value,
+      especialidad: especialidad.value,
+      empresa: empresa.value,
+      barco: barco.value,
+      parte: parte.value
     };
 
-    if(!nuevo.fecha || !nuevo.precio) return;
+    if(!data.fecha||!data.precio)return;
 
-    s.jornales.push(nuevo);
-    save(s);
-    render(container);
+    if(s.editId){
+      s.jornales=s.jornales.map(j=>j.id===data.id?data:j);
+      s.editId=null;
+    }else{
+      s.jornales.push(data);
+    }
+    save(s); render(container);
   };
+
+  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
+    const j=s.jornales.find(x=>x.id==b.dataset.edit);
+    s.editId=j.id; save(s); render(container);
+    f.value=j.fecha; p.value=j.precio; pr.value=j.prima;
+    i.value=j.irpf; jornada.value=j.jornada;
+    especialidad.value=j.especialidad; empresa.value=j.empresa;
+    barco.value=j.barco||''; parte.value=j.parte||'';
+  });
+
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    if(confirm('¿Eliminar jornal?')){
+      s.jornales=s.jornales.filter(j=>j.id!=b.dataset.del);
+      save(s); render(container);
+    }
+  });
+
+  if(document.getElementById('cancel')){
+    cancel.onclick=()=>{s.editId=null; save(s); render(container);}
+  }
 
   document.getElementById('csv').onclick=()=>exportCSV(mesJ,s.mes,s.anio)
   document.getElementById('pdf').onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
