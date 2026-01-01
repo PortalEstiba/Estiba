@@ -165,5 +165,64 @@ fab?.addEventListener('click', () => {
 
 closeBtn?.addEventListener('click',()=>modal.classList.add('hidden'));
 
+// ================================
+// EDITAR Y BORRAR JORNALES (FIX)
+// ================================
+
+document.addEventListener('click', (e) => {
+  const s = load();
+
+  // BORRAR
+  if (e.target.dataset.del) {
+    const id = Number(e.target.dataset.del);
+    if (!confirm('¿Borrar este jornal?')) return;
+
+    s.jornales = s.jornales.filter(j => j.id !== id);
+    save(s);
+    render(document.getElementById('page-sueldometro'));
+  }
+
+  // EDITAR
+  if (e.target.dataset.edit) {
+    const id = Number(e.target.dataset.edit);
+    const j = s.jornales.find(j => j.id === id);
+    if (!j) return;
+
+    // Abrir modal con datos
+    modalContainer.innerHTML = `
+      <div class="grid">
+        <input id="f" type="date" value="${j.fecha}">
+        <input id="p" type="number" value="${j.precio}">
+        <input id="pr" type="number" value="${j.prima || 0}">
+        <input id="i" type="number" value="${j.irpf}">
+        <select id="jornada">${JORNADAS.map(x=>`<option ${x===j.jornada?'selected':''}>${x}</option>`).join('')}</select>
+        <select id="especialidad">${ESPECIALIDADES.map(x=>`<option ${x===j.especialidad?'selected':''}>${x}</option>`).join('')}</select>
+        <select id="empresa">${EMPRESAS.map(x=>`<option ${x===j.empresa?'selected':''}>${x}</option>`).join('')}</select>
+        <input id="barco" value="${j.barco || ''}">
+        <input id="parte" value="${j.parte || ''}">
+      </div>
+      <button id="guardarEdit" class="primary">Actualizar jornal</button>
+    `;
+
+    modal.classList.remove('hidden');
+
+    document.getElementById('guardarEdit').onclick = () => {
+      j.fecha = f.value;
+      j.precio = +p.value;
+      j.prima = +pr.value || 0;
+      j.irpf = +i.value;
+      j.jornada = jornada.value;
+      j.especialidad = especialidad.value;
+      j.empresa = empresa.value;
+      j.barco = barco.value;
+      j.parte = parte.value;
+
+      save(s);
+      modal.classList.add('hidden');
+      render(document.getElementById('page-sueldometro'));
+    };
+  }
+});
+
 export default { render };
 
