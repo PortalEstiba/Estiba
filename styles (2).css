@@ -1,0 +1,147 @@
+
+/* ============================
+   UI PRO – Portal Estiba
+   ============================ */
+
+:root{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --primary:#0b2a4a;
+  --accent:#ff8c1a;
+  --success:#1abc9c;
+  --muted:#7a7a7a;
+}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  background:var(--bg);
+  color:#111;
+}
+
+nav{
+  display:flex;
+  justify-content:space-around;
+  background:var(--primary);
+  padding:12px;
+}
+
+nav button{
+  background:none;
+  border:none;
+  color:white;
+  font-size:16px;
+  font-weight:600;
+}
+
+.page{display:none;padding:14px}
+.page.active{display:block}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+.card h2, .card h3{
+  margin-top:0;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:15px;
+}
+
+.primary{
+  background:var(--primary);
+  color:white;
+  border:none;
+  padding:12px;
+  border-radius:14px;
+  font-size:15px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+
+.right{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.danger{
+  background:#e74c3c;
+  color:white;
+  border:none;
+  border-radius:10px;
+  padding:6px 10px;
+}
+
+.orange{color:var(--accent)}
+.green{color:var(--success)}
+.muted{color:var(--muted);font-size:14px}
+
+/* FAB */
+.fab{
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  font-size:32px;
+  background:linear-gradient(135deg,#0b2a4a,#1abc9c);
+  color:#fff;
+  border:none;
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+  z-index:1000;
+}
+
+/* MODAL */
+.modal.hidden{display:none}
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1001;
+}
+.modal-content{
+  background:#fff;
+  width:92%;
+  max-width:420px;
+  border-radius:18px;
+  padding:16px;
+}
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+/* Ocultar formulario original de añadir jornal (pero mantenerlo en el DOM) */
+.form-add-jornal,
+#formAddJornal,
+.add-jornal-card {
+  display: none !important;
+}
+
