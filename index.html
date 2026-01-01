@@ -4,23 +4,41 @@
   <meta charset="UTF-8">
   <title>Portal Estiba</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="./manifest.json">
+
+  <!-- PWA -->
+  <link rel="manifest" href="./public/manifest.json">
+  <meta name="theme-color" content="#0b2a4a">
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="./src/styles/styles.css">
 </head>
+
 <body>
-  <nav>
+  <nav class="top-nav">
     <button data-navigate="dashboard">Dashboard</button>
     <button data-navigate="sueldometro">Sueldómetro</button>
   </nav>
 
-  <main id="app"></main>
+  <main>
+    <!-- Dashboard -->
+    <section id="page-dashboard" class="page active">
+      <!-- El dashboard se renderiza desde JS -->
+    </section>
 
+    <!-- Sueldómetro -->
+    <section id="page-sueldometro" class="page">
+      <!-- El sueldómetro se renderiza desde JS -->
+    </section>
+  </main>
+
+  <!-- Core -->
   <script src="./src/core/app.js"></script>
   <script src="./src/core/router.js"></script>
 
+  <!-- PWA -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.register('./public/sw.js');
     }
   </script>
 </body>
