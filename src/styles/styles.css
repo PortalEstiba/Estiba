@@ -97,3 +97,43 @@ input, select{
 .orange{color:var(--accent)}
 .green{color:var(--success)}
 .muted{color:var(--muted);font-size:14px}
+
+/* FAB */
+.fab{
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  font-size:32px;
+  background:linear-gradient(135deg,#0b2a4a,#1abc9c);
+  color:#fff;
+  border:none;
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+  z-index:1000;
+}
+
+/* MODAL */
+.modal.hidden{display:none}
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1001;
+}
+.modal-content{
+  background:#fff;
+  width:92%;
+  max-width:420px;
+  border-radius:18px;
+  padding:16px;
+}
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
