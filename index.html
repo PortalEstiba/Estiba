@@ -5,50 +5,48 @@
   <title>Portal Estiba</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="./styles.css">
+  <!-- PWA -->
+  <link rel="manifest" href="./public/manifest.json">
+  <meta name="theme-color" content="#0b2a4a">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="./src/styles/styles.css">
 </head>
+
 <body>
+  <nav class="top-nav">
+    <button data-navigate="dashboard">Dashboard</button>
+    <button data-navigate="sueldometro">Sueldómetro</button>
+  </nav>
 
-<nav class="top-nav">
-  <button data-navigate="dashboard">Dashboard</button>
-  <button data-navigate="sueldometro">Sueldómetro</button>
-</nav>
+  <main>
+    <section id="page-dashboard" class="page active"></section>
+    <section id="page-sueldometro" class="page"></section>
+  </main>
 
-<main>
-  <section id="page-dashboard" class="page active">
-    <h2>Dashboard</h2>
-    <p>Resumen general.</p>
-  </section>
+  <!-- BOTÓN FLOTANTE -->
+  <button id="fabAddJornal" class="fab">+</button>
 
-  <section id="page-sueldometro" class="page">
-    <div id="sueldometroApp"></div>
-  </section>
-</main>
-
-<!-- BOTÓN FLOTANTE -->
-<button id="fabAddJornal">+</button>
-
-<!-- MODAL -->
-<div id="modalJornal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Añadir Jornal Manual</h3>
-      <button id="closeModal">×</button>
+  <!-- MODAL AÑADIR JORNAL -->
+  <div id="modalJornal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Añadir Jornal Manual</h2>
+        <button id="closeModal">✕</button>
+      </div>
+      <div id="modalFormContainer"></div>
     </div>
-    <div id="modalFormContainer"></div>
   </div>
-</div>
 
-<script src="./sueldometro.js"></script>
-<script>
-  // Navegación simple
-  document.querySelectorAll('[data-navigate]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('page-' + btn.dataset.navigate).classList.add('active');
-    });
-  });
-</script>
+  <!-- Core -->
+  <script type="module" src="./src/core/app.js"></script>
+  <script type="module" src="./src/core/router.js"></script>
 
+  <!-- PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./public/sw.js');
+    }
+  </script>
 </body>
 </html>
