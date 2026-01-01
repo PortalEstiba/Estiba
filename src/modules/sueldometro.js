@@ -207,7 +207,6 @@ const modalContainer = document.getElementById('modalFormContainer');
 if (fab && originalForm && modalContainer) {
   fab.addEventListener('click', () => {
     modalContainer.innerHTML = '';
-    modalContainer.appendChild(originalForm);
     modal.classList.remove('hidden');
   });
 }
