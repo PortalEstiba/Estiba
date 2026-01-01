@@ -2,11 +2,15 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Portal Estiba</title>
+  <title>Portal Estiba VLC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Estilos -->
   <link rel="stylesheet" href="./src/styles/styles.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="./public/manifest.json">
+  <meta name="theme-color" content="#0b2a4a">
 </head>
 <body>
 
@@ -26,8 +30,15 @@
     </section>
   </main>
 
-  <!-- Script principal (ES MODULE obligatorio) -->
+  <!-- App principal -->
   <script type="module" src="./src/core/app.js"></script>
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./public/sw.js');
+    }
+  </script>
 
 </body>
 </html>
