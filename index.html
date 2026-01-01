@@ -20,20 +20,27 @@
   </nav>
 
   <main>
-    <!-- Dashboard -->
-    <section id="page-dashboard" class="page active">
-      <!-- El dashboard se renderiza desde JS -->
-    </section>
-
-    <!-- Sueldómetro -->
-    <section id="page-sueldometro" class="page">
-      <!-- El sueldómetro se renderiza desde JS -->
-    </section>
+    <section id="page-dashboard" class="page active"></section>
+    <section id="page-sueldometro" class="page"></section>
   </main>
 
-  <!-- Core (ES MODULES) -->
-<script type="module" src="./src/core/app.js"></script>
-<script type="module" src="./src/core/router.js"></script>
+  <!-- BOTÓN FLOTANTE -->
+  <button id="fabAddJornal" class="fab">+</button>
+
+  <!-- MODAL AÑADIR JORNAL -->
+  <div id="modalJornal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Añadir Jornal Manual</h2>
+        <button id="closeModal">✕</button>
+      </div>
+      <div id="modalFormContainer"></div>
+    </div>
+  </div>
+
+  <!-- Core -->
+  <script type="module" src="./src/core/app.js"></script>
+  <script type="module" src="./src/core/router.js"></script>
 
   <!-- PWA -->
   <script>
