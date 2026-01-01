@@ -1,12 +1,11 @@
 // src/modules/sueldometro.js
-// Sueldómetro v5: UI PRO + añadir/editar/borrar + resumen avanzado
+// Sueldómetro v6: IRPF por jornal (individual)
 
-const STORAGE_KEY = 'sueldometro_v5';
+const STORAGE_KEY = 'sueldometro_v6';
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 const defaultState = {
-  irpf: 35,
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
   jornales: []
@@ -17,24 +16,28 @@ function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function quincena(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 
 function calcMonth(s){
-  let q1=0,q2=0,count=0;
+  let q1=0,q2=0,neto=0,count=0;
   s.jornales.forEach(j=>{
     const d=new Date(j.fecha);
     if(d.getMonth()===s.mes && d.getFullYear()===s.anio){
       count++;
       quincena(j.fecha)==='q1'?q1+=j.precio:q2+=j.precio;
+      neto += j.precio * (1 - j.irpf/100);
     }
   });
-  const bruto=q1+q2, neto=bruto*(1-s.irpf/100);
+  const bruto=q1+q2;
   return {q1,q2,bruto,neto,count};
 }
+
 function calcYear(s){
-  let bruto=0;
+  let bruto=0,neto=0;
   s.jornales.forEach(j=>{
     const d=new Date(j.fecha);
-    if(d.getFullYear()===s.anio) bruto+=j.precio;
+    if(d.getFullYear()===s.anio){
+      bruto+=j.precio;
+      neto+=j.precio*(1-j.irpf/100);
+    }
   });
-  const neto=bruto*(1-s.irpf/100);
   return {bruto,neto};
 }
 
@@ -53,9 +56,6 @@ function render(container){
       <label>Año
         <input id="anio" type="number" value="${s.anio}">
       </label>
-      <label>IRPF %
-        <input id="irpf" type="number" value="${s.irpf}">
-      </label>
     </div>
   </div>
 
@@ -65,6 +65,7 @@ function render(container){
     <div class="grid">
       <input id="jfecha" type="date">
       <input id="jprecio" type="number" placeholder="Precio €">
+      <input id="jirpf" type="number" placeholder="IRPF %">
       <input id="jesp" placeholder="Especialidad">
       <input id="jbarco" placeholder="Barco">
       <input id="jempresa" placeholder="Empresa">
@@ -82,7 +83,7 @@ function render(container){
       <div class="row">
         <div>
           <strong>${j.fecha}</strong> · ${j.especialidad||'-'} · ${j.barco||'-'}
-          <div class="muted">${j.empresa||'-'} · Parte ${j.parte||'-'}</div>
+          <div class="muted">${j.empresa||'-'} · Parte ${j.parte||'-'} · IRPF ${j.irpf}%</div>
         </div>
         <div class="right">
           <strong>${j.precio.toFixed(2)} €</strong>
@@ -111,7 +112,6 @@ function render(container){
 
   container.querySelector('#mes').onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
   container.querySelector('#anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
-  container.querySelector('#irpf').onchange=e=>{s.irpf=+e.target.value;save(s);render(container)}
 
   container.querySelector('#guardar').onclick=()=>{
     const id=container.querySelector('#jid').value;
@@ -119,6 +119,7 @@ function render(container){
       id:id?+id:Date.now(),
       fecha:container.querySelector('#jfecha').value,
       precio:+container.querySelector('#jprecio').value,
+      irpf:+container.querySelector('#jirpf').value||0,
       especialidad:container.querySelector('#jesp').value,
       barco:container.querySelector('#jbarco').value,
       empresa:container.querySelector('#jempresa').value,
@@ -135,6 +136,7 @@ function render(container){
     container.querySelector('#jid').value=j.id;
     container.querySelector('#jfecha').value=j.fecha;
     container.querySelector('#jprecio').value=j.precio;
+    container.querySelector('#jirpf').value=j.irpf;
     container.querySelector('#jesp').value=j.especialidad;
     container.querySelector('#jbarco').value=j.barco;
     container.querySelector('#jempresa').value=j.empresa;
