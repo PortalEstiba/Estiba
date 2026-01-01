@@ -1,12 +1,99 @@
-/* src/styles/styles.css - additions */
-.page { display: none; }
-.page.active { display: block; }
-.card { background:#fff; border-radius:14px; padding:14px; margin:10px 0; box-shadow:0 6px 14px rgba(0,0,0,.06); }
-.grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
-.primary { background:#0b2a4a; color:#fff; border:none; padding:10px; border-radius:10px; }
-.danger { background:#e74c3c; color:#fff; border:none; padding:6px 10px; border-radius:8px; }
-.row { display:flex; justify-content:space-between; align-items:center; gap:10px; border-bottom:1px solid #eee; padding:8px 0; }
-.muted { color:#7a7a7a; font-size:.9em; }
-.orange { color:#ff8c1a; }
-.green { color:#1abc9c; }
-.right { display:flex; gap:8px; align-items:center; }
+
+/* ============================
+   UI PRO – Portal Estiba
+   ============================ */
+
+:root{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --primary:#0b2a4a;
+  --accent:#ff8c1a;
+  --success:#1abc9c;
+  --muted:#7a7a7a;
+}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  background:var(--bg);
+  color:#111;
+}
+
+nav{
+  display:flex;
+  justify-content:space-around;
+  background:var(--primary);
+  padding:12px;
+}
+
+nav button{
+  background:none;
+  border:none;
+  color:white;
+  font-size:16px;
+  font-weight:600;
+}
+
+.page{display:none;padding:14px}
+.page.active{display:block}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+.card h2, .card h3{
+  margin-top:0;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:15px;
+}
+
+.primary{
+  background:var(--primary);
+  color:white;
+  border:none;
+  padding:12px;
+  border-radius:14px;
+  font-size:15px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+
+.right{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.danger{
+  background:#e74c3c;
+  color:white;
+  border:none;
+  border-radius:10px;
+  padding:6px 10px;
+}
+
+.orange{color:var(--accent)}
+.green{color:var(--success)}
+.muted{color:var(--muted);font-size:14px}
