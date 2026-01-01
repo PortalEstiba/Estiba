@@ -1,11 +1,20 @@
 // src/modules/sueldometro.js
-// Sueldómetro v7: IRPF por jornal + resumen + EXPORT PDF/CSV
+// Sueldómetro v8: Especialidades desplegable + Prima por jornal
 
 import { exportCSV, exportPDF } from './exporter.js';
 
-const STORAGE_KEY = 'sueldometro_v7';
+const STORAGE_KEY = 'sueldometro_v8';
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+const ESPECIALIDADES = [
+  'Conductor 1ª',
+  'Conductor 2ª',
+  'Estiba',
+  'Trinca',
+  'Trinca de Coches',
+  'Tolva'
+];
 
 const defaultState = {
   mes: new Date().getMonth(),
@@ -17,14 +26,17 @@ function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defau
 function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function quincena(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 
+function totalJornal(j){ return j.precio + (j.prima || 0); }
+
 function calcMonth(s){
   let q1=0,q2=0,neto=0,count=0;
   s.jornales.forEach(j=>{
     const d=new Date(j.fecha);
     if(d.getMonth()===s.mes && d.getFullYear()===s.anio){
       count++;
-      quincena(j.fecha)==='q1'?q1+=j.precio:q2+=j.precio;
-      neto+=j.precio*(1-j.irpf/100);
+      const total = totalJornal(j);
+      quincena(j.fecha)==='q1'?q1+=total:q2+=total;
+      neto += total * (1 - j.irpf/100);
     }
   });
   const bruto=q1+q2;
@@ -36,8 +48,9 @@ function calcYear(s){
   s.jornales.forEach(j=>{
     const d=new Date(j.fecha);
     if(d.getFullYear()===s.anio){
-      bruto+=j.precio;
-      neto+=j.precio*(1-j.irpf/100);
+      const total = totalJornal(j);
+      bruto+=total;
+      neto+= total*(1-j.irpf/100);
     }
   });
   return {bruto,neto};
@@ -66,9 +79,13 @@ function render(container){
     <input type="hidden" id="jid">
     <div class="grid">
       <input id="jfecha" type="date">
-      <input id="jprecio" type="number" placeholder="Precio €">
+      <input id="jprecio" type="number" placeholder="Precio base €">
+      <input id="jprima" type="number" placeholder="Prima €">
       <input id="jirpf" type="number" placeholder="IRPF %">
-      <input id="jesp" placeholder="Especialidad">
+      <select id="jesp">
+        <option value="">Especialidad</option>
+        ${ESPECIALIDADES.map(e=>`<option value="${e}">${e}</option>`).join('')}
+      </select>
       <input id="jbarco" placeholder="Barco">
       <input id="jempresa" placeholder="Empresa">
       <input id="jparte" placeholder="Nº Parte">
@@ -85,10 +102,13 @@ function render(container){
       <div class="row">
         <div>
           <strong>${j.fecha}</strong> · ${j.especialidad||'-'} · ${j.barco||'-'}
-          <div class="muted">${j.empresa||'-'} · Parte ${j.parte||'-'} · IRPF ${j.irpf}%</div>
+          <div class="muted">
+            ${j.empresa||'-'} · Parte ${j.parte||'-'} · IRPF ${j.irpf}%
+            ${j.prima?`· Prima ${j.prima}€`:''}
+          </div>
         </div>
         <div class="right">
-          <strong>${j.precio.toFixed(2)} €</strong>
+          <strong>${totalJornal(j).toFixed(2)} €</strong>
           <button data-e="${j.id}">✏️</button>
           <button data-d="${j.id}" class="danger">✕</button>
         </div>
@@ -118,17 +138,16 @@ function render(container){
   </div>
   `;
 
-  // selectors
   container.querySelector('#mes').onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
   container.querySelector('#anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
 
-  // guardar / editar
   container.querySelector('#guardar').onclick=()=>{
     const id=container.querySelector('#jid').value;
     const j={
       id:id?+id:Date.now(),
       fecha:container.querySelector('#jfecha').value,
       precio:+container.querySelector('#jprecio').value,
+      prima:+container.querySelector('#jprima').value||0,
       irpf:+container.querySelector('#jirpf').value||0,
       especialidad:container.querySelector('#jesp').value,
       barco:container.querySelector('#jbarco').value,
@@ -141,12 +160,12 @@ function render(container){
     save(s);render(container);
   }
 
-  // editar
   container.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{
     const j=s.jornales.find(x=>x.id==b.dataset.e);
     container.querySelector('#jid').value=j.id;
     container.querySelector('#jfecha').value=j.fecha;
     container.querySelector('#jprecio').value=j.precio;
+    container.querySelector('#jprima').value=j.prima||0;
     container.querySelector('#jirpf').value=j.irpf;
     container.querySelector('#jesp').value=j.especialidad;
     container.querySelector('#jbarco').value=j.barco;
@@ -154,25 +173,18 @@ function render(container){
     container.querySelector('#jparte').value=j.parte;
   })
 
-  // borrar
   container.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{
     s.jornales=s.jornales.filter(j=>j.id!=b.dataset.d);
     save(s);render(container);
   })
 
-  // exportar
   const jornalesMes = s.jornales.filter(j=>{
     const d=new Date(j.fecha);
     return d.getMonth()===s.mes && d.getFullYear()===s.anio;
   });
 
-  container.querySelector('#exp-csv').onclick=()=>{
-    exportCSV(jornalesMes, s.mes, s.anio);
-  };
-
-  container.querySelector('#exp-pdf').onclick=()=>{
-    exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`);
-  };
+  container.querySelector('#exp-csv').onclick=()=>exportCSV(jornalesMes,s.mes,s.anio);
+  container.querySelector('#exp-pdf').onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`);
 }
 
 export default { render };
