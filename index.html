@@ -2,43 +2,26 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Portal Estiba VLC</title>
+  <title>Portal Estiba</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Estilos -->
+  <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./src/styles/styles.css">
-
-  <!-- PWA -->
-  <link rel="manifest" href="./public/manifest.json">
-  <meta name="theme-color" content="#0b2a4a">
 </head>
 <body>
-
   <nav>
     <button data-navigate="dashboard">Dashboard</button>
     <button data-navigate="sueldometro">Sueldómetro</button>
   </nav>
 
-  <main>
-    <section id="page-dashboard" class="page active">
-      <h1>Dashboard</h1>
-      <p>Aplicación pública sin login.</p>
-    </section>
+  <main id="app"></main>
 
-    <section id="page-sueldometro" class="page">
-      <div id="sueldometro-root"></div>
-    </section>
-  </main>
+  <script src="./src/core/app.js"></script>
+  <script src="./src/core/router.js"></script>
 
-  <!-- App principal -->
-  <script type="module" src="./src/core/app.js"></script>
-
-  <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./public/sw.js');
+      navigator.serviceWorker.register('./sw.js');
     }
   </script>
-
 </body>
 </html>

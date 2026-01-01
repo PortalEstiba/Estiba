@@ -1,10 +1,10 @@
-const CACHE_NAME = 'estiba-pwa-v1';
+const CACHE_NAME = 'estiba-v1';
+const BASE = '/Estiba/';
+
 const ASSETS = [
-  './',
-  './index.html',
-  './src/styles/styles.css',
-  './src/core/app.js',
-  './src/modules/sueldometro.js'
+  BASE,
+  BASE + 'index.html',
+  BASE + 'manifest.json'
 ];
 
 self.addEventListener('install', e => {
@@ -15,6 +15,6 @@ self.addEventListener('install', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(res => res || fetch(e.request))
+    caches.match(e.request).then(r => r || fetch(e.request))
   );
 });
