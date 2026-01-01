@@ -1,7 +1,9 @@
 // src/modules/sueldometro.js
-// Sueldómetro v4: Resumen mensual avanzado + acumulados
+// Sueldómetro v5: UI PRO + añadir/editar/borrar + resumen avanzado
 
-const STORAGE_KEY = 'sueldometro_v4';
+const STORAGE_KEY = 'sueldometro_v5';
+
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 const defaultState = {
   irpf: 35,
@@ -10,65 +12,89 @@ const defaultState = {
   jornales: []
 };
 
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState; }
-  catch { return defaultState; }
-}
-function save(state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defaultState}catch{return defaultState}}
+function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
+function quincena(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 
-const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-function quincena(d){ return new Date(d).getDate() <= 15 ? 'q1' : 'q2'; }
-
-function calcMonth(state){
+function calcMonth(s){
   let q1=0,q2=0,count=0;
-  state.jornales.forEach(j=>{
+  s.jornales.forEach(j=>{
     const d=new Date(j.fecha);
-    if(d.getMonth()===state.mes && d.getFullYear()===state.anio){
+    if(d.getMonth()===s.mes && d.getFullYear()===s.anio){
       count++;
-      quincena(j.fecha)==='q1'? q1+=j.precio : q2+=j.precio;
+      quincena(j.fecha)==='q1'?q1+=j.precio:q2+=j.precio;
     }
   });
-  const bruto=q1+q2;
-  const neto=bruto*(1-state.irpf/100);
+  const bruto=q1+q2, neto=bruto*(1-s.irpf/100);
   return {q1,q2,bruto,neto,count};
 }
-
-function calcYear(state){
+function calcYear(s){
   let bruto=0;
-  state.jornales.forEach(j=>{
+  s.jornales.forEach(j=>{
     const d=new Date(j.fecha);
-    if(d.getFullYear()===state.anio) bruto+=j.precio;
+    if(d.getFullYear()===s.anio) bruto+=j.precio;
   });
-  const neto=bruto*(1-state.irpf/100);
+  const neto=bruto*(1-s.irpf/100);
   return {bruto,neto};
 }
 
 function render(container){
-  const state=load();
-  const m=calcMonth(state);
-  const y=calcYear(state);
+  const s=load();
+  const m=calcMonth(s);
+  const y=calcYear(s);
 
   container.innerHTML=`
   <div class="card">
     <h2>📊 Resumen avanzado</h2>
     <div class="grid">
       <label>Mes
-        <select id="sm-mes">
-          ${MONTHS.map((n,i)=>`<option value="${i}" ${i===state.mes?'selected':''}>${n}</option>`).join('')}
-        </select>
+        <select id="mes">${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}</select>
       </label>
       <label>Año
-        <input id="sm-anio" type="number" value="${state.anio}">
+        <input id="anio" type="number" value="${s.anio}">
       </label>
       <label>IRPF %
-        <input id="irpf" type="number" value="${state.irpf}">
+        <input id="irpf" type="number" value="${s.irpf}">
       </label>
     </div>
   </div>
 
   <div class="card">
-    <h3>${MONTHS[state.mes]} ${state.anio}</h3>
+    <h3>➕ Añadir / Editar jornal</h3>
+    <input type="hidden" id="jid">
+    <div class="grid">
+      <input id="jfecha" type="date">
+      <input id="jprecio" type="number" placeholder="Precio €">
+      <input id="jesp" placeholder="Especialidad">
+      <input id="jbarco" placeholder="Barco">
+      <input id="jempresa" placeholder="Empresa">
+      <input id="jparte" placeholder="Nº Parte">
+    </div>
+    <button id="guardar" class="primary">Guardar</button>
+  </div>
+
+  <div class="card">
+    <h3>📋 Jornales ${MONTHS[s.mes]} ${s.anio}</h3>
+    ${s.jornales.filter(j=>{
+      const d=new Date(j.fecha);
+      return d.getMonth()===s.mes && d.getFullYear()===s.anio;
+    }).map(j=>`
+      <div class="row">
+        <div>
+          <strong>${j.fecha}</strong> · ${j.especialidad||'-'} · ${j.barco||'-'}
+          <div class="muted">${j.empresa||'-'} · Parte ${j.parte||'-'}</div>
+        </div>
+        <div class="right">
+          <strong>${j.precio.toFixed(2)} €</strong>
+          <button data-e="${j.id}">✏️</button>
+          <button data-d="${j.id}" class="danger">✕</button>
+        </div>
+      </div>
+    `).join('')||'<p class="muted">No hay jornales.</p>'}
+  </div>
+
+  <div class="card">
+    <h3>${MONTHS[s.mes]} ${s.anio}</h3>
     <p>Jornales: <strong>${m.count}</strong></p>
     <p>Bruto 1–15: <strong>${m.q1.toFixed(2)} €</strong></p>
     <p>Bruto 16–fin: <strong>${m.q2.toFixed(2)} €</strong></p>
@@ -77,15 +103,48 @@ function render(container){
   </div>
 
   <div class="card">
-    <h3>📆 Acumulado ${state.anio}</h3>
+    <h3>📆 Acumulado ${s.anio}</h3>
     <p class="orange"><strong>Total Bruto Año: ${y.bruto.toFixed(2)} €</strong></p>
     <p class="green"><strong>Total Neto Año: ${y.neto.toFixed(2)} €</strong></p>
   </div>
   `;
 
-  container.querySelector('#sm-mes').onchange=e=>{state.mes=+e.target.value; save(state); render(container);};
-  container.querySelector('#sm-anio').onchange=e=>{state.anio=+e.target.value; save(state); render(container);};
-  container.querySelector('#irpf').onchange=e=>{state.irpf=+e.target.value; save(state); render(container);};
+  container.querySelector('#mes').onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
+  container.querySelector('#anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
+  container.querySelector('#irpf').onchange=e=>{s.irpf=+e.target.value;save(s);render(container)}
+
+  container.querySelector('#guardar').onclick=()=>{
+    const id=container.querySelector('#jid').value;
+    const j={
+      id:id?+id:Date.now(),
+      fecha:container.querySelector('#jfecha').value,
+      precio:+container.querySelector('#jprecio').value,
+      especialidad:container.querySelector('#jesp').value,
+      barco:container.querySelector('#jbarco').value,
+      empresa:container.querySelector('#jempresa').value,
+      parte:container.querySelector('#jparte').value
+    };
+    if(!j.fecha||!j.precio)return;
+    if(id) s.jornales=s.jornales.map(x=>x.id===j.id?j:x);
+    else s.jornales.push(j);
+    save(s);render(container);
+  }
+
+  container.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{
+    const j=s.jornales.find(x=>x.id==b.dataset.e);
+    container.querySelector('#jid').value=j.id;
+    container.querySelector('#jfecha').value=j.fecha;
+    container.querySelector('#jprecio').value=j.precio;
+    container.querySelector('#jesp').value=j.especialidad;
+    container.querySelector('#jbarco').value=j.barco;
+    container.querySelector('#jempresa').value=j.empresa;
+    container.querySelector('#jparte').value=j.parte;
+  })
+
+  container.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{
+    s.jornales=s.jornales.filter(j=>j.id!=b.dataset.d);
+    save(s);render(container);
+  })
 }
 
 export default { render };
