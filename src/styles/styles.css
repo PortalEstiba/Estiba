@@ -138,10 +138,10 @@ input, select{
   align-items:center;
 }
 
-/* Ocultar antigua tarjeta de añadir jornal */
-.add-jornal,
-.card-add-jornal,
-#addJornal,
-[data-add-jornal] {
+/* Ocultar formulario original de añadir jornal (pero mantenerlo en el DOM) */
+.form-add-jornal,
+#formAddJornal,
+.add-jornal-card {
   display: none !important;
 }
+
