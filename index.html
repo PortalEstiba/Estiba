@@ -5,7 +5,7 @@
   <title>Portal Estiba</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Estilos (ruta correcta para GitHub Pages) -->
+  <!-- Estilos -->
   <link rel="stylesheet" href="./src/styles/styles.css">
 </head>
 <body>
@@ -22,14 +22,12 @@
     </section>
 
     <section id="page-sueldometro" class="page">
-      <h1>Sueldómetro</h1>
-      <p>Aquí irá el cálculo de jornales.</p>
+      <div id="sueldometro-root"></div>
     </section>
   </main>
 
-  <!-- Scripts (rutas correctas) -->
-  <script src="./src/core/app.js"></script>
-  <script src="./src/core/router.js"></script>
+  <!-- Script principal (ES MODULE obligatorio) -->
+  <script type="module" src="./src/core/app.js"></script>
 
 </body>
 </html>
