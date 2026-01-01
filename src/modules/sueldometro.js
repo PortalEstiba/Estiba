@@ -1,7 +1,9 @@
 // src/modules/sueldometro.js
-// Sueldómetro v6: IRPF por jornal (individual)
+// Sueldómetro v7: IRPF por jornal + resumen + EXPORT PDF/CSV
 
-const STORAGE_KEY = 'sueldometro_v6';
+import { exportCSV, exportPDF } from './exporter.js';
+
+const STORAGE_KEY = 'sueldometro_v7';
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -22,7 +24,7 @@ function calcMonth(s){
     if(d.getMonth()===s.mes && d.getFullYear()===s.anio){
       count++;
       quincena(j.fecha)==='q1'?q1+=j.precio:q2+=j.precio;
-      neto += j.precio * (1 - j.irpf/100);
+      neto+=j.precio*(1-j.irpf/100);
     }
   });
   const bruto=q1+q2;
@@ -108,11 +110,19 @@ function render(container){
     <p class="orange"><strong>Total Bruto Año: ${y.bruto.toFixed(2)} €</strong></p>
     <p class="green"><strong>Total Neto Año: ${y.neto.toFixed(2)} €</strong></p>
   </div>
+
+  <div class="card">
+    <h3>📤 Exportar</h3>
+    <button id="exp-csv" class="primary">Exportar Excel (CSV)</button>
+    <button id="exp-pdf">Exportar PDF</button>
+  </div>
   `;
 
+  // selectors
   container.querySelector('#mes').onchange=e=>{s.mes=+e.target.value;save(s);render(container)}
   container.querySelector('#anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
 
+  // guardar / editar
   container.querySelector('#guardar').onclick=()=>{
     const id=container.querySelector('#jid').value;
     const j={
@@ -131,6 +141,7 @@ function render(container){
     save(s);render(container);
   }
 
+  // editar
   container.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{
     const j=s.jornales.find(x=>x.id==b.dataset.e);
     container.querySelector('#jid').value=j.id;
@@ -143,10 +154,25 @@ function render(container){
     container.querySelector('#jparte').value=j.parte;
   })
 
+  // borrar
   container.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{
     s.jornales=s.jornales.filter(j=>j.id!=b.dataset.d);
     save(s);render(container);
   })
+
+  // exportar
+  const jornalesMes = s.jornales.filter(j=>{
+    const d=new Date(j.fecha);
+    return d.getMonth()===s.mes && d.getFullYear()===s.anio;
+  });
+
+  container.querySelector('#exp-csv').onclick=()=>{
+    exportCSV(jornalesMes, s.mes, s.anio);
+  };
+
+  container.querySelector('#exp-pdf').onclick=()=>{
+    exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`);
+  };
 }
 
 export default { render };
