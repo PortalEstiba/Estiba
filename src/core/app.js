@@ -1,29 +1,22 @@
 // src/core/app.js
-// Enrutado simple + carga de módulos
+// Arranque correcto de la app Portal Estiba
 
-import Sueldometro from '../modules/sueldometro.js';
+import dashboard from '../modules/dashboard.js';
+import sueldometro from '../modules/sueldometro.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  showPage('dashboard');
-  setupNavigation();
-});
+  console.log('Portal Estiba iniciado');
 
-function showPage(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const page = document.getElementById(`page-${pageId}`);
-  if (page) {
-    page.classList.add('active');
-    if (pageId === 'sueldometro') {
-      const mount = page.querySelector('#sueldometro-root');
-      Sueldometro.render(mount);
-    }
+  const dashboardPage = document.getElementById('page-dashboard');
+  const sueldometroPage = document.getElementById('page-sueldometro');
+
+  // Render inicial Dashboard
+  if (dashboard && dashboard.render) {
+    dashboard.render(dashboardPage);
   }
-}
 
-function setupNavigation() {
-  document.querySelectorAll('[data-navigate]').forEach(el => {
-    el.addEventListener('click', () => showPage(el.dataset.navigate));
-  });
-}
-
-window.showPage = showPage;
+  // Preparar Sueldómetro (se muestra al navegar)
+  if (sueldometro && sueldometro.render) {
+    sueldometro.render(sueldometroPage);
+  }
+});
