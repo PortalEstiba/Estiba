@@ -170,6 +170,10 @@ fab?.addEventListener('click', () => {
       <input id="f" type="date">
       <input id="p" type="number" placeholder="Precio €">
       <input id="mov" type="number" placeholder="Movimientos">
+      <div id="primaPreview" class="prima-preview muted">
+  Prima calculada: 0.00 €
+</div>
+
 <select id="tipoDia">
   <option>LABORABLE</option>
   <option>SABADO</option>
@@ -187,6 +191,24 @@ fab?.addEventListener('click', () => {
     </div>
     <button id="guardar" class="primary">Guardar jornal</button>
   `;
+  const movInput = document.getElementById('mov');
+const jornadaSel = document.getElementById('jornada');
+const tipoDiaSel = document.getElementById('tipoDia');
+const preview = document.getElementById('primaPreview');
+
+function actualizarPreview() {
+  const movimientos = +movInput.value || 0;
+  const jornada = jornadaSel.value;
+  const tipoDia = tipoDiaSel.value;
+
+  const prima = calcularPrima(jornada, tipoDia, movimientos);
+  preview.textContent = `Prima calculada: ${prima.toFixed(2)} €`;
+}
+
+movInput.addEventListener('input', actualizarPreview);
+jornadaSel.addEventListener('change', actualizarPreview);
+tipoDiaSel.addEventListener('change', actualizarPreview);
+
   modal.classList.remove('hidden');
 
   document.getElementById('guardar').onclick = () => {
