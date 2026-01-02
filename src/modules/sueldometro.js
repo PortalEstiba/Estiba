@@ -10,6 +10,45 @@ const ESPECIALIDADES = ['Conductor 1ª','Conductor 2ª','Estiba','Trinca','Trinc
 const JORNADAS = ['02-08','08-14','14-20','20-02'];
 const EMPRESAS = ['CSP','APM','MSC','VTE','ERSIP','BALEARIA','GNV','TRANSMED'];
 
+// ================================
+// TABLA DE PRIMAS POR MOVIMIENTOS
+// ================================
+
+const PRIMAS_MOV = {
+  '02-08': {
+    LABORABLE: { lt120: 0.901, gte120: 0.966 },
+    FESTIVO:   { lt120: 1.309, gte120: 1.405 },
+    FEST_A_LAB:{ lt120: 0.901, gte120: 0.966 },
+    FEST_A_FEST:{ lt120: 1.309, gte120: 1.405 }
+  },
+  '08-14': {
+    LABORABLE: { lt120: 0.374, gte120: 0.612 },
+    SABADO:    { lt120: 0.374, gte120: 0.612 },
+    FESTIVO:   { lt120: 0.674, gte120: 0.786 }
+  },
+  '14-20': {
+    LABORABLE: { lt120: 0.374, gte120: 0.612 },
+    SABADO:    { lt120: 0.674, gte120: 0.786 },
+    FESTIVO:   { lt120: 0.933, gte120: 1.000 }
+  },
+  '20-02': {
+    LABORABLE:   { lt120: 0.554, gte120: 0.774 },
+    LAB_A_FEST:  { lt120: 0.554, gte120: 0.774 },
+    SABADO:      { lt120: 0.974, gte120: 1.045 },
+    FESTIVO:     { lt120: 1.414, gte120: 1.517 },
+    FEST_A_LAB:  { lt120: 1.414, gte120: 1.517 },
+    FEST_A_FEST: { lt120: 1.414, gte120: 1.517 }
+  }
+};
+
+function calcularPrimaAuto(jornada, tipoDia, movimientos) {
+  if (!movimientos || movimientos <= 0) return 0;
+  const fila = PRIMAS_MOV[jornada]?.[tipoDia];
+  if (!fila) return 0;
+  const coef = movimientos < 120 ? fila.lt120 : fila.gte120;
+  return +(coef * movimientos).toFixed(2);
+}
+
 const defaultState = {
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
@@ -131,32 +170,57 @@ fab?.addEventListener('click', () => {
     <div class="grid">
       <input id="f" type="date">
       <input id="p" type="number" placeholder="Precio €">
-      <input id="pr" type="number" placeholder="Prima €">
       <input id="i" type="number" placeholder="IRPF %">
-      <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
-      <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
-      <select id="empresa">${EMPRESAS.map(x=>`<option>${x}</option>`).join('')}</select>
-      <input id="barco" placeholder="Barco">
-      <input id="parte" placeholder="Parte">
-    </div>
-    <button id="guardar" class="primary">Guardar jornal</button>
+
+      modalContainer.innerHTML = `
+  <div class="grid">
+    <input id="f" type="date">
+    <input id="p" type="number" placeholder="Precio base €">
+    <input id="mov" type="number" placeholder="Movimientos">
+    <input id="i" type="number" placeholder="IRPF %">
+
+    <select id="tipoDia">
+      <option value="LABORABLE">Laborable</option>
+      <option value="SABADO">Sábado</option>
+      <option value="FESTIVO">Festivo</option>
+      <option value="FEST_A_LAB">Festivo → Laborable (20–02)</option>
+      <option value="LAB_A_FEST">Laborable → Festivo (20–02)</option>
+      <option value="FEST_A_FEST">Festivo → Festivo (20–02)</option>
+    </select>
+    
+    <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
+    <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
+    <select id="empresa">${EMPRESAS.map(x=>`<option>${x}</option>`).join('')}</select>
+    <input id="barco" placeholder="Barco">
+    <input id="parte" placeholder="Parte">
+  </div>
+ <button id="guardar" class="primary">Guardar jornal</button>
   `;
+  
   modal.classList.remove('hidden');
 
   document.getElementById('guardar').onclick = () => {
     const s=load();
-    s.jornales.push({
-      id:Date.now(),
-      fecha:f.value,
-      precio:+p.value,
-      prima:+pr.value||0,
-      irpf:+i.value||0,
-      jornada:jornada.value,
-      especialidad:especialidad.value,
-      empresa:empresa.value,
-      barco:barco.value,
-      parte:parte.value
-    });
+    const movimientos = +mov.value || 0;
+const tipo = tipoDia.value;
+
+const primaCalc = calcularPrimaAuto(jornada.value, tipo, movimientos);
+
+s.jornales.push({
+  id: Date.now(),
+  fecha: f.value,
+  precio: +p.value,
+  prima: primaCalc,
+  movimientos,
+  tipoDia: tipo,
+  irpf: +i.value || 0,
+  jornada: jornada.value,
+  especialidad: especialidad.value,
+  empresa: empresa.value,
+  barco: barco.value,
+  parte: parte.value
+});
+
     save(s);
     modal.classList.add('hidden');
     render(document.getElementById('page-sueldometro'));
@@ -209,7 +273,9 @@ document.addEventListener('click', (e) => {
     document.getElementById('guardarEdit').onclick = () => {
       j.fecha = f.value;
       j.precio = +p.value;
-      j.prima = +pr.value || 0;
+      j.movimientos = +mov.value || j.movimientos;
+      j.tipoDia = tipoDia.value || j.tipoDia;
+      j.prima = calcularPrimaAuto(j.jornada, j.tipoDia, j.movimientos);
       j.irpf = +i.value;
       j.jornada = jornada.value;
       j.especialidad = especialidad.value;
