@@ -12,6 +12,11 @@ export default {
 };
 
 // Datos estáticos - Enlaces actualizados con URLs reales
+const ENLACES_DATA = [ ... ];
+
+export default {
+  render(container) { ... }
+};
   const categorias = [...new Set(ENLACES_DATA.map(e => e.categoria))];
 
 container.innerHTML += categorias.map(cat => `
