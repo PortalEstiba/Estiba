@@ -44,7 +44,6 @@ const defaultState = {
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
   vista: 'quincena',
-  editId: null,
   jornales: []
 };
 
@@ -218,6 +217,17 @@ tipoDiaSel.addEventListener('change', actualizarPreview);
 // Inicial
 actualizarTiposDia();
 
+const f = document.getElementById('f');
+const p = document.getElementById('p');
+const mov = document.getElementById('mov');
+const tipoDia = document.getElementById('tipoDia');
+const jornada = document.getElementById('jornada');
+const especialidad = document.getElementById('especialidad');
+const empresa = document.getElementById('empresa');
+const barco = document.getElementById('barco');
+const parte = document.getElementById('parte');
+const i = document.getElementById('i');
+  
   document.getElementById('guardar').onclick = () => {
     const s=load();
     s.jornales.push({
