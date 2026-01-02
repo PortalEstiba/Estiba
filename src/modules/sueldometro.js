@@ -242,6 +242,9 @@ document.addEventListener('click', (e) => {
         <input id="f" type="date" value="${j.fecha}">
         <input id="p" type="number" value="${j.precio}">
         <input id="mov" type="number" value="${j.movimientos || 0}">
+        <div id="primaPreview" class="prima-preview muted">
+        Prima calculada: 0.00 €
+        </div>
         <select id="tipoDia">
           ${['LABORABLE','SABADO','FESTIVO','FEST. A LAB.','LAB A FEST','FEST. A FEST.']
             .map(x=>`<option ${x===j.tipoDia?'selected':''}>${x}</option>`).join('')}
