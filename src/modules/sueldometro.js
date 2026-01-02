@@ -250,7 +250,6 @@ fab?.addEventListener('click', () => {
       <div id="primaPreview" class="prima-preview muted">
   Prima calculada: 0.00 €
 </div>
-<select id="tipoDia"></select>
       <input id="i" type="number" placeholder="IRPF %">
       <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
       <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
@@ -264,25 +263,26 @@ fab?.addEventListener('click', () => {
   modal.classList.remove('hidden');
 const movInput = document.getElementById('mov');
 const jornadaSel = document.getElementById('jornada');
-const tipoDiaSel = document.getElementById('tipoDia');
 const preview = document.getElementById('primaPreview');
-
-function actualizarTiposDia() {
-  const tipos = tiposDiaDisponibles(jornadaSel.value);
-  tipoDiaSel.innerHTML = tipos.map(t => `<option>${t}</option>`).join('');
-  actualizarPreview();
 }
 
 function actualizarPreview() {
+  if (!f.value) {
+    preview.textContent = 'Selecciona fecha';
+    return;
+  }
+
   const movimientos = +movInput.value || 0;
   const jornada = jornadaSel.value;
-  const tipoDia = tipoDiaSel.value;
+  const tipo = detectarTipoDia(f.value, jornada);
 
-  const prima = calcularPrima(jornada, tipoDia, movimientos);
-  preview.textContent = `Prima calculada: ${prima.toFixed(2)} €`;
+  const prima = calcularPrima(jornada, tipo, movimientos);
+
+  preview.textContent = `Tipo: ${tipo} · Prima: ${prima.toFixed(2)} €`;
 }
 
 // Eventos
+f.addEventListener('change', actualizarPreview);
 movInput.addEventListener('input', actualizarPreview);
 jornadaSel.addEventListener('change', actualizarTiposDia);
 tipoDiaSel.addEventListener('change', actualizarPreview);
