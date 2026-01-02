@@ -52,17 +52,17 @@ function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defau
 function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function q(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 function total(j){ return j.precio + (j.prima||0) }
-function calcularPrima(jornada, tipoDia, movimientos) {
-  function tiposDiaDisponibles(jornada) {
+function tiposDiaDisponibles(jornada) {
   return PRIMAS[jornada]
     ? Object.keys(PRIMAS[jornada])
     : [];
 }
+function calcularPrima(jornada, tipoDia, movimientos) {
   if (!PRIMAS[jornada] || !PRIMAS[jornada][tipoDia]) return 0;
 
   const tramo = movimientos < 120 ? 'lt120' : 'gte120';
   const valor = PRIMAS[jornada][tipoDia][tramo] || 0;
-
+}
   return valor * movimientos;
 }
 
@@ -188,24 +188,7 @@ fab?.addEventListener('click', () => {
     </div>
     <button id="guardar" class="primary">Guardar jornal</button>
   `;
-  const movInput = document.getElementById('mov');
-const jornadaSel = document.getElementById('jornada');
-const tipoDiaSel = document.getElementById('tipoDia');
-const preview = document.getElementById('primaPreview');
-
-function actualizarPreview() {
-  const movimientos = +movInput.value || 0;
-  const jornada = jornadaSel.value;
-  const tipoDia = tipoDiaSel.value;
-
-  const prima = calcularPrima(jornada, tipoDia, movimientos);
-  preview.textContent = `Prima calculada: ${prima.toFixed(2)} €`;
-}
-
-movInput.addEventListener('input', actualizarPreview);
-jornadaSel.addEventListener('change', actualizarPreview);
-tipoDiaSel.addEventListener('change', actualizarPreview);
-
+  
   modal.classList.remove('hidden');
 const movInput = document.getElementById('mov');
 const jornadaSel = document.getElementById('jornada');
