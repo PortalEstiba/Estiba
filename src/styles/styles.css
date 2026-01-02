@@ -145,4 +145,39 @@ input, select{
   display: none !important;
 }
 
+/* ================================
+   DASHBOARD – ENLACES
+================================ */
+
+.grid-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.link-card {
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,.15);
+}
+
+/* Colores */
+.link-card.blue { background: #2563eb; }
+.link-card.yellow { background: #eab308; color: #000; }
+.link-card.orange { background: #f97316; }
+.link-card.red { background: #dc2626; }
+.link-card.green { background: #16a34a; }
+.link-card.purple { background: #7c3aed; }
+
 
