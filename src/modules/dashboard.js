@@ -35,7 +35,7 @@ const ENLACES_DATA = [
   { titulo: 'Previsión Demanda', url: 'https://noray.cpevalencia.com/PrevisionDemanda.asp', categoria: 'Información', color: 'green' },
   { titulo: 'Chapero CPE', url: 'https://noray.cpevalencia.com/Chapero.asp', categoria: 'Información', color: 'green' },
   { titulo: 'Asignación CSP', url: 'https://workerhub.marvalsa.com/login', categoria: 'Información', color: 'green' },
-  { titulo: 'Tabla Con', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTtbkA94xqjf81lsR7bLKKtyES2YBDKs8J2T4UrSEan7e5Z_eaptShCA78R1wqUyYyASJxmHj3gDnY/pubhtml?gid=1388412839&single=true', categoria: 'Información', color: 'green' },
+  { titulo: 'Asignación MSC', url: 'https://intranet.msctv.es/ESTIBA/asignacion.asp?chapa=', categoria: 'Información', color: 'green' },
   // Comunicaciones
   { titulo: 'Comunicación Contingencia', url: 'https://docs.google.com/forms/d/e/1FAIpQLSdxLm9xqP4FOv61h3-YoyRFzkxKcfAGir_YYRi5e4PTFisEAw/viewform', categoria: 'Comunicaciones', color: 'purple' }
 ];
