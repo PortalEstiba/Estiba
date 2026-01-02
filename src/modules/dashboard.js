@@ -10,8 +10,25 @@ export default {
     `;
   }
 };
+
 // Datos estáticos - Enlaces actualizados con URLs reales
-const ENLACES_DATA = [
+  const categorias = [...new Set(ENLACES_DATA.map(e => e.categoria))];
+
+container.innerHTML += categorias.map(cat => `
+  <div class="card">
+    <h3>${cat}</h3>
+    <div class="grid-links">
+      ${ENLACES_DATA
+        .filter(e => e.categoria === cat)
+        .map(e => `
+          <a href="${e.url}" target="_blank" class="link-card ${e.color}">
+            ${e.titulo}
+          </a>
+        `).join('')}
+    </div>
+  </div>
+`).join('');
+
   // Formularios  
   { titulo: 'Punto y HS', url: 'https://docs.google.com/forms/d/e/1FAIpQLSeGKl5gwKrcj110D_6xhHVo0bn7Fo56tneof68dRyS6xUrD7Q/viewform', categoria: 'Formularios', color: 'blue' },
   { titulo: 'Cambio Posición', url: 'https://docs.google.com/forms/d/e/1FAIpQLSe6V16kccSmyBAYCkDNphYAbD7dqe4ydHbVWu_zpXvnFFFxlA/viewform', categoria: 'Formularios', color: 'blue' },
