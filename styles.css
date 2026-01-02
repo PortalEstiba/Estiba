@@ -1,0 +1,14 @@
+
+#fabAddJornal {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0b5ed7;
+  color: white;
+  font-size: 28px;
+  border: none;
+}
+.modal { display:none; }

@@ -2,51 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Portal Estiba</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- PWA -->
-  <link rel="manifest" href="./public/manifest.json">
-  <meta name="theme-color" content="#0b2a4a">
-
-  <!-- Estilos -->
-  <link rel="stylesheet" href="./src/styles/styles.css">
+  <title>Sueldómetro</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-  <nav class="top-nav">
-    <button data-navigate="dashboard">Dashboard</button>
-    <button data-navigate="sueldometro">Sueldómetro</button>
-  </nav>
-
-  <main>
-    <section id="page-dashboard" class="page active"></section>
-    <section id="page-sueldometro" class="page"></section>
-  </main>
-
-  <!-- BOTÓN FLOTANTE -->
-  <button id="fabAddJornal" class="fab">+</button>
-
-  <!-- MODAL AÑADIR JORNAL -->
-  <div id="modalJornal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Añadir Jornal Manual</h2>
-        <button id="closeModal">✕</button>
-      </div>
-      <div id="modalFormContainer"></div>
-    </div>
-  </div>
-
-  <!-- Core -->
-  <script type="module" src="./src/core/app.js"></script>
-  <script type="module" src="./src/core/router.js"></script>
-
-  <!-- PWA -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./public/sw.js');
-    }
-  </script>
+<button id="fabAddJornal">+</button>
+<div id="modalJornal" class="modal"></div>
+<script type="module" src="sueldometro.js"></script>
 </body>
 </html>
