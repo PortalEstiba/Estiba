@@ -131,10 +131,7 @@ fab?.addEventListener('click', () => {
     <div class="grid">
       <input id="f" type="date">
       <input id="p" type="number" placeholder="Precio €">
-      const prima = calcularPrimaAutomatica(
-      jornada,
-      tipoDia,
-      movimientos);
+      <input id="pr" type="number" placeholder="Prima €">
       <input id="i" type="number" placeholder="IRPF %">
       <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
       <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
@@ -227,50 +224,4 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ===============================
-// TABLA DE PRIMAS POR JORNADA
-// ===============================
-const PRIMA_TABLE = {
-  "02-08": {
-    "Laborable": { lt120: 0.901, gte120: 0.966 },
-    "Festivo": { lt120: 1.309, gte120: 1.405 },
-    "Festivo a Laborable": { lt120: 0.901, gte120: 0.966 },
-    "Festivo a Festivo": { lt120: 1.309, gte120: 1.405 }
-  },
-  "08-14": {
-    "Laborable": { lt120: 0.374, gte120: 0.612 },
-    "Sábado": { lt120: 0.374, gte120: 0.612 },
-    "Festivo": { lt120: 0.674, gte120: 0.786 }
-  },
-  "14-20": {
-    "Laborable": { lt120: 0.374, gte120: 0.612 },
-    "Sábado": { lt120: 0.674, gte120: 0.786 },
-    "Festivo": { lt120: 0.933, gte120: 1.0 }
-  },
-  "20-02": {
-    "Laborable": { lt120: 0.554, gte120: 0.774 },
-    "Laborable a Festivo": { lt120: 0.554, gte120: 0.774 },
-    "Sábado": { lt120: 0.974, gte120: 1.045 },
-    "Festivo a Laborable": { lt120: 1.414, gte120: 1.517 },
-    "Festivo a Festivo": { lt120: 1.414, gte120: 1.517 }
-  }
-};
-
-function calcularPrimaAutomatica(jornada, tipoDia, movimientos) {
-  if (!jornada || !tipoDia || !movimientos) return 0;
-
-  const tablaJornada = PRIMA_TABLE[jornada];
-  if (!tablaJornada) return 0;
-
-  const tablaTipo = tablaJornada[tipoDia];
-  if (!tablaTipo) return 0;
-
-  const coef = movimientos < 120
-    ? tablaTipo.lt120
-    : tablaTipo.gte120;
-
-  return +(coef * movimientos).toFixed(2);
-}
-
 export default { render };
-
