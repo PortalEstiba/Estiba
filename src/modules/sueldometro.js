@@ -9,6 +9,42 @@ const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto
 const ESPECIALIDADES = ['Conductor 1ª','Conductor 2ª','Estiba','Trinca','Trinca de Coches','Tolva'];
 const JORNADAS = ['02-08','08-14','14-20','20-02'];
 const EMPRESAS = ['CSP','APM','MSC','VTE','ERSIP','BALEARIA','GNV','TRANSMED'];
+const FESTIVOS = [
+  // ENERO
+  '2025-01-01',
+  '2025-01-06',
+
+  // ABRIL
+  '2025-04-17',
+  '2025-04-18',
+  '2025-04-21',
+
+  // MAYO
+  '2025-05-01',
+
+  // JUNIO
+  '2025-06-24',
+
+  // JULIO
+  '2025-07-16',
+
+  // AGOSTO
+  '2025-08-15',
+
+  // SEPTIEMBRE
+  '2025-09-18',
+
+  // OCTUBRE
+  '2025-10-09',
+
+  // NOVIEMBRE
+  '2025-11-05',
+
+  // DICIEMBRE
+  '2025-12-08',
+  '2025-12-18',
+  '2025-12-25'
+];
 
 // ================================
 // TABLA DE PRIMAS POR MOVIMIENTO
@@ -51,6 +87,43 @@ function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defau
 function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function q(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 function total(j){ return j.precio + (j.prima||0) }
+function detectarTipoDia(fecha, jornada) {
+  const d = new Date(fecha);
+  const fechaStr = fecha;
+  const diaSemana = d.getDay(); // 0 domingo, 6 sábado
+
+  const esFestivo = FESTIVOS.includes(fechaStr);
+
+  let inicio;
+  if (esFestivo || diaSemana === 0) inicio = 'FESTIVO';
+  else if (diaSemana === 6) inicio = 'SABADO';
+  else inicio = 'LABORABLE';
+
+  // TODAS las jornadas menos 02-08 NO cruzan de día
+  if (jornada !== '02-08') {
+    return inicio;
+  }
+
+  // SOLO 02-08 cruza de día
+  const d2 = new Date(d);
+  d2.setDate(d.getDate() + 1);
+
+  const fechaSig = d2.toISOString().slice(0, 10);
+  const ds = d2.getDay();
+  const festivoSig = FESTIVOS.includes(fechaSig);
+
+  let fin;
+  if (festivoSig || ds === 0) fin = 'FESTIVO';
+  else if (ds === 6) fin = 'SABADO';
+  else fin = 'LABORABLE';
+
+  if (inicio === fin) return inicio;
+  if (inicio === 'FESTIVO' && fin === 'LABORABLE') return 'FEST. A LAB.';
+  if (inicio === 'LABORABLE' && fin === 'FESTIVO') return 'LAB A FEST';
+  if (inicio === 'FESTIVO' && fin === 'FESTIVO') return 'FEST. A FEST.';
+
+  return inicio;
+}
 function tiposDiaDisponibles(jornada) {
   return PRIMAS[jornada]
     ? Object.keys(PRIMAS[jornada])
@@ -230,13 +303,14 @@ const i = document.getElementById('i');
   
   document.getElementById('guardar').onclick = () => {
     const s=load();
+    const tipo = detectarTipoDia(f.value, jornada.value);
     s.jornales.push({
       id:Date.now(),
       fecha:f.value,
       precio:+p.value,
       movimientos: +mov.value || 0,
-      tipoDia: tipoDia.value,
-      prima: calcularPrima(jornada.value, tipoDia.value, +mov.value || 0),
+      tipoDia: tipo,
+      prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
       irpf:+i.value||0,
       jornada:jornada.value,
       especialidad:especialidad.value,
