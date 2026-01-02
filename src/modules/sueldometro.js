@@ -53,6 +53,11 @@ function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function q(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 function total(j){ return j.precio + (j.prima||0) }
 function calcularPrima(jornada, tipoDia, movimientos) {
+  function tiposDiaDisponibles(jornada) {
+  return PRIMAS[jornada]
+    ? Object.keys(PRIMAS[jornada])
+    : [];
+}
   if (!PRIMAS[jornada] || !PRIMAS[jornada][tipoDia]) return 0;
 
   const tramo = movimientos < 120 ? 'lt120' : 'gte120';
@@ -173,15 +178,7 @@ fab?.addEventListener('click', () => {
       <div id="primaPreview" class="prima-preview muted">
   Prima calculada: 0.00 €
 </div>
-
-<select id="tipoDia">
-  <option>LABORABLE</option>
-  <option>SABADO</option>
-  <option>FESTIVO</option>
-  <option>FEST. A LAB.</option>
-  <option>LAB A FEST</option>
-  <option>FEST. A FEST.</option>
-</select>
+<select id="tipoDia"></select>
       <input id="i" type="number" placeholder="IRPF %">
       <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
       <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
@@ -210,6 +207,33 @@ jornadaSel.addEventListener('change', actualizarPreview);
 tipoDiaSel.addEventListener('change', actualizarPreview);
 
   modal.classList.remove('hidden');
+const movInput = document.getElementById('mov');
+const jornadaSel = document.getElementById('jornada');
+const tipoDiaSel = document.getElementById('tipoDia');
+const preview = document.getElementById('primaPreview');
+
+function actualizarTiposDia() {
+  const tipos = tiposDiaDisponibles(jornadaSel.value);
+  tipoDiaSel.innerHTML = tipos.map(t => `<option>${t}</option>`).join('');
+  actualizarPreview();
+}
+
+function actualizarPreview() {
+  const movimientos = +movInput.value || 0;
+  const jornada = jornadaSel.value;
+  const tipoDia = tipoDiaSel.value;
+
+  const prima = calcularPrima(jornada, tipoDia, movimientos);
+  preview.textContent = `Prima calculada: ${prima.toFixed(2)} €`;
+}
+
+// Eventos
+movInput.addEventListener('input', actualizarPreview);
+jornadaSel.addEventListener('change', actualizarTiposDia);
+tipoDiaSel.addEventListener('change', actualizarPreview);
+
+// Inicial
+actualizarTiposDia();
 
   document.getElementById('guardar').onclick = () => {
     const s=load();
