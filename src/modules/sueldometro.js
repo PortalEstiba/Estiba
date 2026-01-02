@@ -62,7 +62,7 @@ function calcularPrima(jornada, tipoDia, movimientos) {
 
   const tramo = movimientos < 120 ? 'lt120' : 'gte120';
   const valor = PRIMAS[jornada][tipoDia][tramo] || 0;
-}
+
   return valor * movimientos;
 }
 
