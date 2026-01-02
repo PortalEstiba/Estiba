@@ -166,6 +166,24 @@ const modalContainer = document.getElementById('modalFormContainer');
 
 fab?.addEventListener('click', () => {
   modalContainer.innerHTML = `
+  const movInput = document.getElementById('mov');
+const jornadaSel = document.getElementById('jornada');
+const tipoDiaSel = document.getElementById('tipoDia');
+const preview = document.getElementById('primaPreview');
+
+function actualizarPreview() {
+  const movimientos = +movInput.value || 0;
+  const jornada = jornadaSel.value;
+  const tipoDia = tipoDiaSel.value;
+
+  const prima = calcularPrima(jornada, tipoDia, movimientos);
+  preview.textContent = `Prima calculada: ${prima.toFixed(2)} €`;
+}
+
+// Eventos
+movInput.addEventListener('input', actualizarPreview);
+jornadaSel.addEventListener('change', actualizarPreview);
+tipoDiaSel.addEventListener('change', actualizarPreview);
     <div class="grid">
       <input id="f" type="date">
       <input id="p" type="number" placeholder="Precio €">
