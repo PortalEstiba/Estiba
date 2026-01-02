@@ -10,6 +10,36 @@ const ESPECIALIDADES = ['Conductor 1ª','Conductor 2ª','Estiba','Trinca','Trinc
 const JORNADAS = ['02-08','08-14','14-20','20-02'];
 const EMPRESAS = ['CSP','APM','MSC','VTE','ERSIP','BALEARIA','GNV','TRANSMED'];
 
+// ================================
+// TABLA DE PRIMAS POR MOVIMIENTO
+// ================================
+
+const PRIMAS = {
+  '02-08': {
+    LABORABLE: { lt120: 0.901, gte120: 0.966 },
+    'FEST. A LAB.': { lt120: 0.901, gte120: 0.966 },
+    FESTIVO: { lt120: 1.309, gte120: 1.405 },
+    'FEST. A FEST.': { lt120: 1.309, gte120: 1.405 }
+  },
+  '08-14': {
+    LABORABLE: { lt120: 0.374, gte120: 0.612 },
+    SABADO: { lt120: 0.374, gte120: 0.612 },
+    FESTIVO: { lt120: 0.674, gte120: 0.786 }
+  },
+  '14-20': {
+    LABORABLE: { lt120: 0.374, gte120: 0.612 },
+    SABADO: { lt120: 0.674, gte120: 0.786 },
+    FESTIVO: { lt120: 0.933, gte120: 1.0 }
+  },
+  '20-02': {
+    LABORABLE: { lt120: 0.554, gte120: 0.774 },
+    'LAB A FEST': { lt120: 0.554, gte120: 0.774 },
+    SABADO: { lt120: 0.974, gte120: 1.045 },
+    'FEST. A LAB.': { lt120: 1.414, gte120: 1.517 },
+    'FEST. A FEST.': { lt120: 1.414, gte120: 1.517 }
+  }
+};
+
 const defaultState = {
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
@@ -22,6 +52,14 @@ function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defau
 function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function q(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 function total(j){ return j.precio + (j.prima||0) }
+function calcularPrima(jornada, tipoDia, movimientos) {
+  if (!PRIMAS[jornada] || !PRIMAS[jornada][tipoDia]) return 0;
+
+  const tramo = movimientos < 120 ? 'lt120' : 'gte120';
+  const valor = PRIMAS[jornada][tipoDia][tramo] || 0;
+
+  return valor * movimientos;
+}
 
 function resumen(arr){
   let bruto=0,neto=0;
@@ -131,7 +169,15 @@ fab?.addEventListener('click', () => {
     <div class="grid">
       <input id="f" type="date">
       <input id="p" type="number" placeholder="Precio €">
-      <input id="pr" type="number" placeholder="Prima €">
+      <input id="mov" type="number" placeholder="Movimientos">
+<select id="tipoDia">
+  <option>LABORABLE</option>
+  <option>SABADO</option>
+  <option>FESTIVO</option>
+  <option>FEST. A LAB.</option>
+  <option>LAB A FEST</option>
+  <option>FEST. A FEST.</option>
+</select>
       <input id="i" type="number" placeholder="IRPF %">
       <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
       <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
@@ -149,7 +195,9 @@ fab?.addEventListener('click', () => {
       id:Date.now(),
       fecha:f.value,
       precio:+p.value,
-      prima:+pr.value||0,
+      movimientos: +mov.value || 0,
+      tipoDia: tipoDia.value,
+      prima: calcularPrima(jornada.value, tipoDia.value, +mov.value || 0),
       irpf:+i.value||0,
       jornada:jornada.value,
       especialidad:especialidad.value,
@@ -193,7 +241,11 @@ document.addEventListener('click', (e) => {
       <div class="grid">
         <input id="f" type="date" value="${j.fecha}">
         <input id="p" type="number" value="${j.precio}">
-        <input id="pr" type="number" value="${j.prima || 0}">
+        <input id="mov" type="number" value="${j.movimientos || 0}">
+        <select id="tipoDia">
+          ${['LABORABLE','SABADO','FESTIVO','FEST. A LAB.','LAB A FEST','FEST. A FEST.']
+            .map(x=>`<option ${x===j.tipoDia?'selected':''}>${x}</option>`).join('')}
+         </select>
         <input id="i" type="number" value="${j.irpf}">
         <select id="jornada">${JORNADAS.map(x=>`<option ${x===j.jornada?'selected':''}>${x}</option>`).join('')}</select>
         <select id="especialidad">${ESPECIALIDADES.map(x=>`<option ${x===j.especialidad?'selected':''}>${x}</option>`).join('')}</select>
@@ -209,7 +261,9 @@ document.addEventListener('click', (e) => {
     document.getElementById('guardarEdit').onclick = () => {
       j.fecha = f.value;
       j.precio = +p.value;
-      j.prima = +pr.value || 0;
+      j.movimientos = +mov.value || 0;
+      j.tipoDia = tipoDia.value;
+      j.prima = calcularPrima(j.jornada, j.tipoDia, j.movimientos);
       j.irpf = +i.value;
       j.jornada = jornada.value;
       j.especialidad = especialidad.value;
