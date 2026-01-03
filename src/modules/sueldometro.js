@@ -148,7 +148,7 @@ function detectarTipoDia(fecha, jornada) {
     if (inicio === 'FESTIVO' && fin === 'LABORABLE') return 'FEST. A LAB.';
     if (inicio === 'FESTIVO' && fin === 'FESTIVO') return 'FEST. A FEST.';
 
-    return fin;
+    return inicio;
   }
 
   return inicio;
