@@ -89,45 +89,69 @@ function q(f){ return new Date(f).getDate()<=15?'q1':'q2' }
 function total(j){ return j.precio + (j.prima||0) }
 function detectarTipoDia(fecha, jornada) {
   const d = new Date(fecha);
-  const fechaStr = fecha;
   const diaSemana = d.getDay(); // 0 domingo, 6 sábado
+  const fechaStr = d.toISOString().slice(0, 10);
 
   const esFestivo = FESTIVOS.includes(fechaStr);
 
+  // ===== Día de inicio =====
   let inicio;
   if (esFestivo || diaSemana === 0) inicio = 'FESTIVO';
   else if (diaSemana === 6) inicio = 'SABADO';
   else inicio = 'LABORABLE';
 
-  // TODAS las jornadas menos 02-08 NO cruzan de día
-  if (jornada !== '02-08') {
+  // ===== Jornadas que NO cruzan día =====
+  if (jornada === '08-14' || jornada === '14-20') {
     return inicio;
   }
 
-  // SOLO 02-08 cruza de día
-  const d2 = new Date(d);
-  d2.setDate(d.getDate() + 1);
+  // ===== Jornada 20–02 =====
+  if (jornada === '20-02') {
+    // SABADO manda siempre
+    if (inicio === 'SABADO') return 'SABADO';
 
-  const fechaSig = d2.toISOString().slice(0, 10);
-  const ds = d2.getDay();
-  const festivoSig = FESTIVOS.includes(fechaSig);
+    // Calculamos día siguiente
+    const d2 = new Date(d);
+    d2.setDate(d.getDate() + 1);
+    const fechaSig = d2.toISOString().slice(0, 10);
+    const ds = d2.getDay();
+    const festivoSig = FESTIVOS.includes(fechaSig);
 
-  let fin;
-  if (festivoSig || ds === 0) fin = 'FESTIVO';
-  else if (ds === 6) fin = 'SABADO';
-  else fin = 'LABORABLE';
+    let fin;
+    if (festivoSig || ds === 0) fin = 'FESTIVO';
+    else if (ds === 6) fin = 'SABADO';
+    else fin = 'LABORABLE';
 
-  if (inicio === fin) return inicio;
-  if (inicio === 'FESTIVO' && fin === 'LABORABLE') return 'FEST. A LAB.';
-  if (inicio === 'LABORABLE' && fin === 'FESTIVO') return 'LAB A FEST';
-  if (inicio === 'FESTIVO' && fin === 'FESTIVO') return 'FEST. A FEST.';
+    if (inicio === fin) return inicio;
+    if (inicio === 'LABORABLE' && fin === 'FESTIVO') return 'LAB A FEST';
+    if (inicio === 'FESTIVO' && fin === 'LABORABLE') return 'FEST. A LAB.';
+    if (inicio === 'FESTIVO' && fin === 'FESTIVO') return 'FEST. A FEST.';
+
+    return inicio;
+  }
+
+  // ===== Jornada 02–08 =====
+  if (jornada === '02-08') {
+    const d2 = new Date(d);
+    d2.setDate(d.getDate() + 1);
+    const fechaSig = d2.toISOString().slice(0, 10);
+    const ds = d2.getDay();
+    const festivoSig = FESTIVOS.includes(fechaSig);
+
+    let fin;
+    if (festivoSig || ds === 0) fin = 'FESTIVO';
+    else if (ds === 6) fin = 'SABADO';
+    else fin = 'LABORABLE';
+
+    if (inicio === fin) return inicio;
+    if (inicio === 'LABORABLE' && fin === 'FESTIVO') return 'LAB A FEST';
+    if (inicio === 'FESTIVO' && fin === 'LABORABLE') return 'FEST. A LAB.';
+    if (inicio === 'FESTIVO' && fin === 'FESTIVO') return 'FEST. A FEST.';
+
+    return fin;
+  }
 
   return inicio;
-}
-function tiposDiaDisponibles(jornada) {
-  return PRIMAS[jornada]
-    ? Object.keys(PRIMAS[jornada])
-    : [];
 }
 function calcularPrima(jornada, tipoDia, movimientos) {
   if (!PRIMAS[jornada] || !PRIMAS[jornada][tipoDia]) return 0;
@@ -276,8 +300,10 @@ fab?.addEventListener('click', () => {
   function actualizarPreview() {
     if (!f.value) return;
 
-    const tipo = detectarTipoDia(f.value, jornada.value);
-    const prima = calcularPrima(jornada.value, tipo, +mov.value || 0);
+const tipo = detectarTipoDia(f.value, jornada.value);
+
+prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
+tipoDia: tipo,
 
     preview.textContent = `Tipo: ${tipo} · Prima: ${prima.toFixed(2)} €`;
   }
