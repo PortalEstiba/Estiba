@@ -298,15 +298,17 @@ fab?.addEventListener('click', () => {
   const parte = document.getElementById('parte');
 
   function actualizarPreview() {
-    if (!f.value) return;
-
-const tipo = detectarTipoDia(f.value, jornada.value);
-
-prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
-tipoDia: tipo,
-
-    preview.textContent = `Tipo: ${tipo} · Prima: ${prima.toFixed(2)} €`;
+  if (!f.value) {
+    preview.textContent = 'Selecciona fecha';
+    return;
   }
+
+  const movimientos = +mov.value || 0;
+  const tipo = detectarTipoDia(f.value, jornada.value);
+  const prima = calcularPrima(jornada.value, tipo, movimientos);
+
+  preview.textContent = `Tipo: ${tipo} · Prima: ${prima.toFixed(2)} €`;
+}
 
   f.addEventListener('change', actualizarPreview);
   mov.addEventListener('input', actualizarPreview);
