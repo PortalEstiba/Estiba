@@ -259,3 +259,293 @@
         console.error('❌ Error asignando IRPF a jornales:', error);
       }
     }
+
+    // 3. Agrupar por quincena (DESPUÉS de filtrar jornales incompletos)
+    const quincenasMap = groupByQuincena(jornalesConSalario);
+
+    // 4. Calcular estadísticas globales (iniciales)
+    // Estos totales se recalcularán después con `actualizarTotales`
+    const totalJornalesGlobal = jornalesConSalario.length;
+    let salarioTotalBrutoGlobal = jornalesConSalario.reduce((sum, j) => sum + j.total, 0);
+    // Calcular neto usando el IRPF específico de cada jornal
+    let salarioTotalNetoGlobal = jornalesConSalario.reduce((sum, j) => {
+      return sum + (j.total * (1 - j.irpf_aplicado / 100));
+    }, 0);
+    let salarioPromedioBrutoGlobal = totalJornalesGlobal > 0 ? salarioTotalBrutoGlobal / totalJornalesGlobal : 0;
+
+    // 5. Mostrar IRPF control y estadísticas
+    if (irpfControl) {
+      irpfControl.style.display = 'block';
+    }
+
+    stats.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-value">${totalJornalesGlobal}</div>
+        <div class="stat-label">Jornales Totales (Anual)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--puerto-orange);">${salarioTotalBrutoGlobal.toFixed(2)}€</div>
+        <div class="stat-label">Total Bruto (Anual)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--puerto-green);">${salarioTotalNetoGlobal.toFixed(2)}€</div>
+        <div class="stat-label">Total Neto (Anual con IRPF aplicado)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--puerto-orange);">${salarioPromedioBrutoGlobal.toFixed(2)}€</div>
+        <div class="stat-label">Promedio Bruto (Anual)</div>
+      </div>
+    `;
+
+    // 6. Renderizar quincenas con salarios
+    const quincenasArray = Array.from(quincenasMap.entries())
+      .map(([key, jornalesQuincena]) => {
+        // Asegurarse de que los objetos jornal dentro de jornalesQuincena
+        // sean los mismos que en jornalesConSalario para que los cambios se reflejen
+        const jornalesConSalarioQuincena = jornalesQuincena.map(j => {
+          return jornalesConSalario.find(jcs => 
+            jcs.fecha === j.fecha && jcs.jornada === j.jornada && jcs.puesto === j.puesto
+          ) || j; // Fallback al original si no se encuentra (no debería pasar)
+        }).filter(j => j);
+        
+        const [year, month, quincena] = key.split('-').map(Number);
+        return { year, month, quincena, jornales: jornalesConSalarioQuincena }; // Usar el array con salarios
+      })
+      .sort((a, b) => {
+        // Ordenar por año, mes, quincena descendente
+        if (a.year !== b.year) return b.year - a.year;
+        if (a.month !== b.month) return b.month - a.month;
+        return b.quincena - a.quincena;
+      });
+
+    const monthNamesShort = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+    // Función auxiliar para generar acordeón móvil
+    const generarAcordeonMovil = (j, idx, year, month, quincena) => {
+      // Validar que el jornal tenga los campos necesarios
+      if (!j.jornada || !j.fecha) {
+        console.warn('⚠️ Jornal incompleto en acordeón móvil, saltando:', j);
+        return ''; // Retornar string vacío para no romper el HTML
+      }
+
+      const accordionId = `accordion-${year}-${month}-${quincena}-${idx}`;
+      const lockKey = `${j.fecha}_${j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, '')}`;
+      const lockedData = lockedValues[lockKey] || {};
+
+      let movimientosValue;
+      if (j.tipo_operativa === 'Trincador') {
+        movimientosValue = lockedData.movimientos !== undefined ? lockedData.movimientos : 0;
+      } else {
+        movimientosValue = lockedData.movimientos !== undefined ? lockedData.movimientos : (j.tipo_operativa === 'Contenedor' ? 120 : 0);
+      }
+
+      let primaValue = lockedData.prima !== undefined ? lockedData.prima : j.prima;
+      const horasRelevoValue = lockedData.horasRelevo || 0;
+      const horasRemateValue = lockedData.horasRemate || 0;
+      const barrasTrincaValue = j.tipo_operativa === 'Trincador' ? movimientosValue : 0;
+      const tipoOperacionTrincaValue = lockedData.tipoOperacionTrincaPersonalizada || null;
+
+      // Recalcular prima
+      if (j.tipo_operativa === 'Contenedor' && !j.es_jornal_fijo) {
+        const salarioInfo = tablaSalarial.find(s => s.clave_jornada === j.clave_jornada);
+        if (salarioInfo) {
+          primaValue = movimientosValue < 120
+            ? movimientosValue * salarioInfo.coef_prima_menor120
+            : movimientosValue * salarioInfo.coef_prima_mayor120;
+        }
+      }
+
+      if (j.tipo_operativa === 'Trincador' && barrasTrincaValue > 0 && tipoOperacionTrincaValue) {
+        const { horario_trinca, jornada_trinca } = mapearTipoDiaParaTrincaDestrinca(j.tipo_dia, j.jornada);
+        const tarifa = buscarTarifaTrincaDestrinca(tarifasTrincaDestrinca, horario_trinca, jornada_trinca, tipoOperacionTrincaValue);
+        primaValue = barrasTrincaValue * tarifa;
+      }
+
+      const tarifaRelevoAcc = calcularTarifaRelevo(j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), j.tipo_dia);
+      const importeRelevoAcc = tarifaRelevoAcc ? (horasRelevoValue * tarifaRelevoAcc) : 0;
+      const tarifaRemateAcc = calcularTarifaRemate(j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), j.tipo_dia);
+      const importeRemateAcc = tarifaRemateAcc ? (horasRemateValue * tarifaRemateAcc) : 0;
+
+      const brutoAcc = j.salario_base + primaValue + importeRelevoAcc + importeRemateAcc;
+      const netoAcc = brutoAcc * (1 - j.irpf_aplicado / 100);
+
+      // Generar campos según tipo
+      let camposHTML = '';
+
+      // Base siempre visible
+      camposHTML += `
+        <div class="accordion-field">
+          <label>Base</label>
+          <div style="padding: 0.5rem; background: #f1f5f9; border-radius: 6px; font-weight: 500;">
+            ${j.salario_base.toFixed(2)}€${j.incluye_complemento ? '*' : ''}
+          </div>
+        </div>`;
+
+      if (j.es_jornal_fijo) {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Tipo</label>
+            <div style="padding: 0.5rem; background: #f1f5f9; border-radius: 6px;">Fijo OC</div>
+          </div>`;
+      } else if (j.tipo_operativa === 'Contenedor') {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Movimientos</label>
+            <input type="number" class="acc-movimientos-input" value="${movimientosValue}" min="0" data-jornal-index="${idx}">
+          </div>
+          <div class="accordion-field span-2">
+            <label>Prima</label>
+            <input type="number" class="acc-prima-input" value="${primaValue.toFixed(2)}" min="0" step="0.01" data-jornal-index="${idx}">
+          </div>`;
+      } else if (j.tipo_operativa === 'Trincador') {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Barras</label>
+            <input type="number" class="acc-barras-input" value="${barrasTrincaValue}" min="0" data-jornal-index="${idx}">
+          </div>
+          <div class="accordion-field">
+            <label>Operación</label>
+            <select class="acc-tipo-op-select" data-jornal-index="${idx}">
+              <option value="" ${!tipoOperacionTrincaValue ? 'selected' : ''}>-</option>
+              <option value="TRINCA" ${tipoOperacionTrincaValue === 'TRINCA' ? 'selected' : ''}>Trinca</option>
+              <option value="DESTRINCA" ${tipoOperacionTrincaValue === 'DESTRINCA' ? 'selected' : ''}>Destrinca</option>
+            </select>
+          </div>
+          <div class="accordion-field span-2">
+            <label>Prima</label>
+            <input type="number" class="acc-prima-input" value="${primaValue.toFixed(2)}" min="0" step="0.01" data-jornal-index="${idx}">
+          </div>`;
+      } else {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Prima</label>
+            <input type="number" class="acc-prima-input" value="${primaValue.toFixed(2)}" min="0" step="0.01" data-jornal-index="${idx}">
+          </div>`;
+      }
+
+      // Relevo y Remate
+      if (tarifaRelevoAcc !== null) {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Relevo</label>
+            <select class="acc-relevo-select" data-jornal-index="${idx}">
+              <option value="0" ${horasRelevoValue === 0 ? 'selected' : ''}>No</option>
+              <option value="1" ${horasRelevoValue > 0 ? 'selected' : ''}>Sí</option>
+            </select>
+          </div>`;
+      }
+      if (tarifaRemateAcc !== null) {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Remate</label>
+            <select class="acc-remate-select" data-jornal-index="${idx}">
+              <option value="0" ${horasRemateValue === 0 ? 'selected' : ''}>0h</option>
+              <option value="1" ${horasRemateValue === 1 ? 'selected' : ''}>1h</option>
+              <option value="2" ${horasRemateValue === 2 ? 'selected' : ''}>2h</option>
+            </select>
+          </div>`;
+      }
+
+      return `
+        <div class="accordion-item" id="${accordionId}" data-lock-key="${lockKey}">
+          <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="accordion-header-left">
+              <span class="accordion-date">${formatearFecha(j.fecha)}</span>
+              <span class="accordion-jornada">${j.jornada}</span>
+              <span class="accordion-puesto">${j.puesto_display}</span>
+            </div>
+            <div class="accordion-header-right">
+              <span class="accordion-total acc-bruto-value">${brutoAcc.toFixed(2)}€</span>
+              <svg class="accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-body">
+              <div class="accordion-fields">${camposHTML}</div>
+              <div class="accordion-footer">
+                <div class="accordion-footer-item">
+                  <div class="accordion-footer-label">Bruto</div>
+                  <div class="accordion-footer-value bruto acc-bruto-footer">${brutoAcc.toFixed(2)}€</div>
+                </div>
+                <div class="accordion-footer-item">
+                  <div class="accordion-footer-label">Neto</div>
+                  <div class="accordion-footer-value neto acc-neto-value">
+                    ${netoAcc.toFixed(2)}€
+                    ${j.irpf_aplicado && j.irpf_aplicado !== irpfPorcentaje ? `<span class="badge-irpf-diff" title="Este jornal tiene un IRPF del ${j.irpf_aplicado}% (diferente al actual: ${irpfPorcentaje}%)">${j.irpf_aplicado}%</span>` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    };
+
+    // Función auxiliar para calcular tarifa de horas de relevo
+    const calcularTarifaRelevo = (jornada, tipoDia) => {
+      // No hay relevo en 02-08
+      if (jornada === '02-08') return null;
+
+      // Si tipoDia es undefined o null, asumir LABORABLE
+      if (!tipoDia) {
+        tipoDia = 'LABORABLE';
+      }
+
+      // Tarifa especial 93,55€ para:
+      // - Festivos y domingos (cualquier tipo de día que incluya FEST)
+      // - Sábados desde 14-20 hasta 20-02
+      if (tipoDia.includes('FEST') || (tipoDia === 'SABADO' && (jornada === '14-20' || jornada === '20-02'))) {
+        return 93.55;
+      }
+
+      // Tarifa normal para el resto de jornadas
+      return 64.31;
+    };
+
+    // Función auxiliar para calcular tarifa de horas de remate (Grupo I por defecto)
+    const calcularTarifaRemate = (jornada, tipoDia) => {
+      // Si tipoDia es undefined o null, asumir LABORABLE
+      if (!tipoDia) {
+        tipoDia = 'LABORABLE';
+      }
+
+      const tarifasRemate = {
+        '02-08': {
+          'LABORABLE': 61.40,
+          'FEST-LAB': 70.36,
+          'FESTIVO': 110.57,
+          'SABADO': 61.40, // Asumo mismo que laborable para sábado 02-08 si existe
+          'FEST-FEST': 110.57 // Asumo mismo que festivo
+        },
+        '06-12': { // Esta jornada no está en tu determinarTipoDia, pero se mantiene por si acaso
+          'LABORABLE': 41.13,
+          'FESTIVO': 60.92,
+          'SABADO': 41.13 // Asumo mismo que laborable
+        },
+        '08-14': {
+          'LABORABLE': 29.02,
+          'SABADO': 52.24,
+          'FESTIVO': 75.46,
+          'FEST-LAB': 75.46, // Asumo mismo que festivo para coherencia si aparece
+          'LAB-FEST': 29.02 // Asumo mismo que laborable para coherencia si aparece
+        },
+        '14-20': {
+          'LABORABLE': 43.51,
+          'SABADO': 78.37,
+          'FESTIVO': 110.99,
+          'FEST-LAB': 110.99, // Asumo mismo que festivo para coherencia si aparece
+          'LAB-FEST': 43.51 // Asumo mismo que laborable para coherencia si aparece
+        },
+        '20-02': {
+          'LABORABLE': 43.51,
+          'LAB-FEST': 99.25,
+          'SABADO': 76.85,
+          'FEST-LAB': 88.20,
+          'FESTIVO': 110.57, // Asumo festivo en 20-02 si ocurre
+          'FEST-FEST': 110.57 // Asumo festivo en 20-02 si ocurre
+        }
+      };
+
+      return tarifasRemate[jornada]?.[tipoDia] || null;
+    };
