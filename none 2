@@ -1,0 +1,261 @@
+// 2. Calcular salario para cada jornal
+    const jornalesConSalario = jornales.map((jornal, index) => {
+      // Validar que el jornal tenga los campos necesarios
+      if (!jornal.jornada || !jornal.puesto || !jornal.fecha) {
+        console.warn('⚠️ Jornal incompleto, saltando:', jornal);
+        return null;
+      }
+
+      // Normalizar jornada: "08 a 14" → "08-14", "20 a 02" → "20-02"
+      let jornada = jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, '').trim();
+
+      // Normalizar puesto para comparaciones case-insensitive (eliminar espacios extra)
+      const puestoLower = jornal.puesto.trim().replace(/\s+/g, ' ').toLowerCase();
+
+      // 3.1 Buscar en mapeo de puestos usando comparación case-insensitive
+      let mapeo = mapeoPuestos.find(m => m.puesto.trim().replace(/\s+/g, ' ').toLowerCase() === puestoLower);
+
+      // Mapeo de fallback para puestos conocidos que pueden no estar en la hoja
+      const mapeoFallback = {
+        'especialista': { puesto: 'Especialista', grupo_salarial: 'G1', tipo_operativa: 'Contenedor' },
+        'trincador': { puesto: 'Trincador', grupo_salarial: 'G1', tipo_operativa: 'Trincador' },
+        'trincador de coches': { puesto: 'Trincador de Coches', grupo_salarial: 'G1', tipo_operativa: 'Manual' },
+        'conductor de coches': { puesto: 'Conductor de Coches', grupo_salarial: 'G2', tipo_operativa: 'Coches' },
+        'conductor de 2a': { puesto: 'Conductor de 2a', grupo_salarial: 'G2', tipo_operativa: 'Coches' }
+      };
+
+      if (!mapeo) {
+        // Intentar usar mapeo de fallback (búsqueda case-insensitive)
+        if (mapeoFallback[puestoLower]) {
+          mapeo = mapeoFallback[puestoLower];
+          console.log(`ℹ️ Usando mapeo de fallback para: "${jornal.puesto}"`);
+        } else {
+          console.warn(`⚠️ Puesto no encontrado en mapeo: "${jornal.puesto}"`);
+          if (index === 0) {
+            console.log('Puestos disponibles en mapeo:', mapeoPuestos.map(m => m.puesto));
+          }
+          return { ...jornal, salario_base: 0, prima: 0, total: 0, error: 'Puesto no mapeado' };
+        }
+      }
+
+      // Obtener grupo salarial y tipo de operativa
+      let grupoSalarial = mapeo.grupo_salarial; // G1 o G2
+      let tipoOperativa = mapeo.tipo_operativa; // Contenedor o Coches
+
+      // Forzar valores correctos para asegurar coherencia
+      if (puestoLower === 'conductor de coches' || puestoLower === 'conductor de 2a') {
+        grupoSalarial = 'G2';
+        tipoOperativa = 'Coches';
+      }
+
+      // Forzar G1 para Trincador (N/A en movimientos, prima de tabla)
+      if (puestoLower === 'trincador') {
+        grupoSalarial = 'G1';
+        tipoOperativa = 'Trincador';
+      }
+
+      // Forzar G1 para Especialista (120 movimientos por defecto, prima con coeficiente)
+      if (puestoLower === 'especialista') {
+        grupoSalarial = 'G1';
+        tipoOperativa = 'Contenedor'; // Especialista usa Contenedor para mostrar movimientos
+      }
+
+      if (puestoLower === 'trincador de coches') {
+        grupoSalarial = 'G1';
+        tipoOperativa = 'Manual';
+      }
+
+      // Forzar G2 para Conductor de 1a (120 movimientos por defecto, prima con coeficiente)
+      if (puestoLower === 'conductor de 1a') {
+        grupoSalarial = 'G2';
+        tipoOperativa = 'Contenedor';
+      }
+
+      // Normalizar nombre de puesto para display
+      let puestoDisplay = jornal.puesto;
+      if (puestoLower === 'conductor de coches') {
+        puestoDisplay = 'Conductor de 2a';
+      }
+
+      // 3.2 Determinar tipo de día
+      const tipoDia = determinarTipoDia(jornal.fecha, jornada);
+
+      // 3.3 Crear clave de jornada (ej: "08-14_LABORABLE")
+      const claveJornada = `${jornada}_${tipoDia}`;
+
+      // 3.4 Buscar en tabla salarial
+      const salarioInfo = tablaSalarial.find(s => s.clave_jornada === claveJornada);
+
+      if (!salarioInfo) {
+        console.error(`❌ Clave de jornada NO encontrada: "${claveJornada}"`);
+        console.log('📋 Claves disponibles:', tablaSalarial.map(t => `"${t.clave_jornada}"`).join(', '));
+        console.log('🔍 Buscando:', `"${claveJornada}" (Fecha: ${jornal.fecha}, Jornada: ${jornada}, Tipo día: ${tipoDia})`);
+        return { ...jornal, salario_base: 0, prima: 0, total: 0, error: `Jornada no encontrada: ${claveJornada}` };
+      }
+
+      // Debug del primer jornal
+      if (index === 0) {
+        console.log('🔍 DEBUG PRIMER JORNAL:');
+        console.log('  Jornal:', jornal);
+        console.log('  Puesto original:', jornal.puesto);
+        console.log('  Puesto normalizado:', puestoLower);
+        console.log('  Mapeo encontrado:', mapeo);
+        console.log('  Tipo día:', tipoDia);
+        console.log('  Clave jornada:', claveJornada);
+        console.log('  Salario info:', salarioInfo);
+      }
+
+      // 3.5 Detectar si el usuario es OC basándose en su POSICIÓN (no en el buque)
+      // CAMBIO: Ahora se basa únicamente en si posicionUsuario > LIMITE_SP
+      // Ya no importa si el buque es "--" o vacío
+      const esConductorOC = (puestoLower === 'conductor de 1a' ||
+                             puestoLower === 'conductor de coches' ||
+                             puestoLower === 'conductor de 2a') && esUsuarioOC;
+
+      let salarioBase = 0;
+      let prima = 0;
+      let esJornalFijo = esConductorOC; // Si es OC y conductor → jornal fijo
+
+      // Tabla de primas mínimas para Trincador según horario y jornada
+      const primasMinimaTrincador = {
+        '02-08_FESTIVO': 203.719,
+        '02-08_LABORABLE': 140.105,
+        '02-08_SABADO': 140.105,
+        '08-14_FESTIVO': 114.031,
+        '08-14_LABORABLE': 88.822,
+        '08-14_SABADO': 88.822,
+        '14-20_FESTIVO': 144.967,
+        '14-20_LABORABLE': 88.822,
+        '14-20_SABADO': 114.031,
+        '20-02_FESTIVO': 220.058,
+        '20-02_LABORABLE': 112.287,
+        '20-02_SABADO': 151.393
+      };
+
+      if (esConductorOC) {
+        // Conductores OC tienen salarios fijos sin prima
+        // Tarifas diferenciadas por tipo de día (LABORABLE, SABADO, FESTIVO)
+        const salariosOC = {
+          // Jornada 02-08 (Super laboral)
+          '02-08_LABORABLE': 321.95,
+          '02-08_SABADO': 321.95,
+          '02-08_FESTIVO': 321.95,
+
+          // Jornada 08-14
+          '08-14_LABORABLE': 179.75,
+          '08-14_SABADO': 195.77,
+          '08-14_FESTIVO': 195.77,
+
+          // Jornada 14-20
+          '14-20_LABORABLE': 179.75,
+          '14-20_SABADO': 270,
+          '14-20_FESTIVO': 408.92,
+
+          // Jornada 20-02
+          '20-02_LABORABLE': 253.75,
+          '20-02_SABADO': 416.12,
+          '20-02_FESTIVO': 253.75
+        };
+
+        const claveOC = `${jornada}_${tipoDia}`;
+        salarioBase = salariosOC[claveOC] || salariosOC[jornada] || 0;
+        prima = 0; // Sin prima para OC
+      } else {
+        // Cálculo normal para SP y Contenedor/Coches/Trincador
+        salarioBase = grupoSalarial === 'G1' ? salarioInfo.jornal_base_g1 : salarioInfo.jornal_base_g2;
+
+        // Añadir complemento de 46,94€ para Trincador y Trincador de Coches
+        if (puestoLower === 'trincador' || puestoLower === 'trincador de coches') {
+          salarioBase += 46.94;
+          if (index === 0) {
+            console.log(`✅ Complemento aplicado a "${jornal.puesto}": +46.94€`);
+          }
+        }
+
+        // 3.6 Calcular prima (por defecto 120 movimientos para Contenedor)
+        if (tipoOperativa === 'Coches') {
+          // Para Coches: usar prima fija de la tabla
+          prima = salarioInfo.prima_minima_coches;
+          if (index === 0) {
+            console.log(`🚗 Coches detectado - Prima: ${prima}€ (de prima_minima_coches)`);
+          }
+        } else if (tipoOperativa === 'Contenedor') {
+          // A partir de 120 movimientos (>=120) se usa coef_mayor
+          prima = 120 * salarioInfo.coef_prima_mayor120;
+        } else if (tipoOperativa === 'Trincador') {
+          // Para Trincador: calcular prima basada en barras × tarifa (sistema de trinca/destrinca)
+          // Por defecto: 0 barras, se editará en la UI
+          prima = 0;
+          if (index === 0) {
+            console.log(`🔧 Trincador de Contenedor detectado - Prima basada en barras (por defecto: 0€)`);
+          }
+        } else if (tipoOperativa === 'Manual') {
+          // Para Manual (ej: Trincador de Coches): prima editable, iniciar en 0
+          prima = 0;
+          if (index === 0) {
+            console.log(`✋ Manual detectado (${jornal.puesto}) - Prima editable iniciada en 0€`);
+          }
+        }
+      }
+
+      // 3.7 Total
+      const total = salarioBase + prima;
+
+      if (index === 0) {
+        console.log('  Grupo salarial:', grupoSalarial);
+        console.log('  Es Conductor OC:', esConductorOC);
+        console.log('  Salario base:', salarioBase);
+        console.log('  Prima (120 mov):', prima);
+        console.log('  Total:', total);
+      }
+
+      // Detectar si incluye complemento para mostrar asterisco
+      const incluyeComplemento = (puestoLower === 'trincador' || puestoLower === 'trincador de coches');
+
+      // IRPF: usar el irpf_aplicado del jornal si existe, sino usar el IRPF actual del usuario
+      const irpfOriginal = jornal.irpf_aplicado; // Guardar el valor original de la BD
+      const irpfJornal = (jornal.irpf_aplicado !== null && jornal.irpf_aplicado !== undefined)
+        ? jornal.irpf_aplicado
+        : irpfPorcentaje;
+
+      return {
+        ...jornal,
+        puesto_display: puestoDisplay,
+        salario_base: salarioBase,
+        prima: prima, // Prima inicial calculada
+        total: total, // Total inicial calculado
+        grupo_salarial: grupoSalarial,
+        tipo_operativa: tipoOperativa,
+        tipo_dia: tipoDia,
+        clave_jornada: claveJornada,
+        es_jornal_fijo: esJornalFijo,
+        incluye_complemento: incluyeComplemento,
+        irpf_aplicado: irpfJornal, // IRPF específico de este jornal
+        irpf_aplicado_original: irpfOriginal // Valor original de la BD para detectar si necesita actualización
+      };
+    }).filter(j => j !== null); // Filtrar jornales nulos (incompletos)
+
+    // IMPORTANTE: Asignar IRPF a jornales que no lo tienen en la base de datos
+    // Esto asegura que los jornales antiguos mantengan el IRPF actual como "congelado"
+    const jornalesSinIRPF = jornalesConSalario.filter(j =>
+      (j.irpf_aplicado_original === null || j.irpf_aplicado_original === undefined) && j.id
+    );
+
+    if (jornalesSinIRPF.length > 0) {
+      console.log(`📝 Asignando IRPF (${irpfPorcentaje}%) a ${jornalesSinIRPF.length} jornales sin IRPF guardado...`);
+
+      // Actualizar en batch todos los jornales sin IRPF
+      const updates = jornalesSinIRPF.map(jornal =>
+        window.supabaseClient
+          .from('jornales')
+          .update({ irpf_aplicado: irpfPorcentaje })
+          .eq('id', jornal.id)
+      );
+
+      try {
+        await Promise.all(updates);
+        console.log(`✅ IRPF asignado correctamente a ${jornalesSinIRPF.length} jornales`);
+      } catch (error) {
+        console.error('❌ Error asignando IRPF a jornales:', error);
+      }
+    }
