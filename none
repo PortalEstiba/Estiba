@@ -177,3 +177,19 @@ function createQuincenaCard(year, month, quincena, jornales) {
     </div>
   `;
 
+  // Click handler para toggle expand/collapse
+  header.addEventListener('click', () => {
+    const isExpanded = body.style.display !== 'none';
+    body.style.display = isExpanded ? 'none' : 'block';
+    const icon = header.querySelector('.expand-icon');
+    icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+  });
+
+  card.appendChild(header);
+  card.appendChild(body);
+
+  return card;
+}
+
+  `;
+
