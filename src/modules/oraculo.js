@@ -899,6 +899,14 @@ window.autoLoadOracleData = async function() {
 
     // PASO 3: Finalizar
     if (previsionSuccess && fijosSuccess) {
+    const content = document.getElementById('oracle-content');
+if (content) {
+  content.innerHTML = `
+    <div class="card success">
+      ✅ Datos cargados correctamente para la chapa ${window.oracleChapaSeleccionada}
+    </div>
+  `;
+}
       const btnCalcular = document.getElementById('btn-calcular-probabilidad');
 if (btnCalcular) {
   btnCalcular.style.display = 'block';
@@ -1062,6 +1070,21 @@ if (!window.oracleChapaSeleccionada) {
   console.warn('Oráculo iniciado sin chapa seleccionada');
 }
 async function loadCalculadora() {
+  const fijosInput = document.getElementById('calc-fijos');
+
+if (!fijosInput) {
+  const resultadoDiv = document.getElementById('calc-resultado');
+  if (resultadoDiv) {
+    resultadoDiv.innerHTML = `
+      <div class="card warning">
+        ⚠️ Faltan los campos de cálculo.<br>
+        Los datos se han cargado correctamente, pero aún no está activado el cálculo visual.
+      </div>
+    `;
+    resultadoDiv.classList.remove('hidden');
+  }
+  return;
+}
   var btnCalcular = document.getElementById('btn-calcular-probabilidad');
   var resultadoDiv = document.getElementById('calc-resultado');
 
