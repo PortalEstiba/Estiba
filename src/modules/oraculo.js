@@ -870,8 +870,9 @@ window.closeOracleManualModal = function() {
   const modal = document.getElementById('oracle-manual-modal');
   if (modal) {
     modal.style.display = 'none';
-    document.body.style.overflow = '';
+    modal.style.pointerEvents = 'none';
   }
+  document.body.style.overflow = '';
 };
 
 // FunciÃ³n para guardar cambios manuales
