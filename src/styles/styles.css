@@ -174,3 +174,26 @@ input, select{
   color: #0f766e;
   font-weight: 600;
 }
+
+/* ================================
+   EMERGENCY CLICK FIX
+   ================================ */
+
+/* Nadie bloquea clics por defecto */
+* {
+  pointer-events: auto !important;
+}
+
+/* Solo los modales visibles pueden bloquear */
+.modal-overlay,
+#oracle-loading-section,
+#oracle-manual-modal {
+  pointer-events: auto !important;
+}
+
+/* Si están ocultos, NO bloquean */
+.modal-overlay[style*="display: none"],
+#oracle-loading-section[style*="display: none"],
+#oracle-manual-modal[style*="display: none"] {
+  pointer-events: none !important;
+}
