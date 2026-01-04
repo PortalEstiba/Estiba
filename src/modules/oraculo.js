@@ -365,6 +365,3 @@ const Oraculo = {
     `;
   }).join('');
 }
-
-export default Oraculo;
-
