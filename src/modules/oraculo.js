@@ -33,17 +33,36 @@ const Oraculo = {
       this.start();
     });
   },
+  
+start() {
+  const chapaInput = document.getElementById('oracle-chapa');
+  const content = document.getElementById('oracle-content');
 
-  start() {
-    const content = document.getElementById('oracle-content');
-    if (!content) return;
+  if (!chapaInput || !content) return;
 
+  const chapa = parseInt(chapaInput.value);
+
+  if (!chapa || chapa <= 0) {
     content.innerHTML = `
-      <div class="card muted">
-        🔄 Cargando previsión...
+      <div class="card danger">
+        ⚠️ Introduce un número de chapa válido
       </div>
     `;
+    return;
   }
+
+  // 👉 Guardamos la chapa seleccionada
+  window.oracleChapaSeleccionada = chapa;
+
+  content.innerHTML = `
+    <div class="card muted">
+      🔄 Cargando previsión para la chapa ${chapa}...
+    </div>
+  `;
+
+  // 👉 Iniciamos la carga real
+  startOracleDataLoad();
+}
 };
 
 export default Oraculo;
