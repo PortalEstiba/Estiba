@@ -839,6 +839,7 @@ window.autoLoadOracleData = async function() {
 
       if (summaryDiv) summaryDiv.style.display = 'block';
       if (loadingSection) loadingSection.style.display = 'none';
+      await loadCalculadora();
 
     } else {
       throw new Error('No se pudieron cargar todos los datos');
