@@ -1,28 +1,18 @@
 // src/modules/oraculo.js
-
 const Oraculo = {
   render(container) {
     container.innerHTML = `
       <div class="card">
         <h2>🔮 El Oráculo</h2>
+        <p class="muted">
+          Calculadora predictiva de jornadas
+        </p>
 
-        <div id="oracle-start-section">
-          <button id="btn-start-oracle" class="primary">
-            Iniciar Oráculo
-          </button>
-        </div>
+        <button id="oracle-start" class="primary">
+          Iniciar Oráculo
+        </button>
 
-        <div id="oracle-loading-section" style="display:none">
-          <div class="progress">
-            <div id="oracle-progress-bar"></div>
-          </div>
-          <p id="oracle-status-text"></p>
-          <p id="oracle-status-detail"></p>
-        </div>
-
-        <div id="oracle-data-summary" style="display:none"></div>
-
-        <div id="calc-resultado" class="hidden"></div>
+        <div id="oracle-content" style="margin-top:12px;"></div>
       </div>
     `;
 
@@ -30,14 +20,27 @@ const Oraculo = {
   },
 
   bindEvents() {
-    const btn = document.getElementById('btn-start-oracle');
-    if (btn) {
-      btn.addEventListener('click', () => {
-        this.startOracleDataLoad();
-      });
-    }
+    const btn = document.getElementById('oracle-start');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      this.start();
+    });
   },
-}; // ← CIERRA EL OBJETO Oraculo
+
+  start() {
+    const content = document.getElementById('oracle-content');
+    if (!content) return;
+
+    content.innerHTML = `
+      <div class="card muted">
+        🔄 Cargando previsión...
+      </div>
+    `;
+  }
+};
+
+export default Oraculo;
 
 // =============================================================================
 // CALCULADORA PREDICTIVA - EL ORACULO
