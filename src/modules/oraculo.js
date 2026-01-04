@@ -1,4 +1,71 @@
 // src/modules/oraculo.js
+
+window.SheetsAPI = {
+  async getCenso() {
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrMuapybwZUEGPR1vsP9p1_nlWvznyl0sPD4xWsNJ7HdXCj1ABY1EpU1um538HHZQyJtoAe5Niwrxq/pubhtml?gid=841547354&single=true';
+    const html = await fetch(url).then(r => r.text());
+    return parseCensoHTML(html);
+  },
+
+  async getPuertas() {
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pubhtml?gid=3770623&single=true';
+    const html = await fetch(url).then(r => r.text());
+    return parsePuertasHTML(html);
+  },
+
+  async getPosicionChapa(chapa) {
+    const censo = await this.getCenso();
+    const fila = censo.find(p => p.chapa === Number(chapa));
+    return fila ? fila.posicion : null;
+  }
+};
+
+function parseCensoHTML(html) {
+  const filas = [];
+  const rows = html.match(/<tr[^>]*>.*?<\/tr>/gi) || [];
+
+  rows.forEach(row => {
+    const cols = row.match(/<td[^>]*>(.*?)<\/td>/gi);
+    if (!cols || cols.length < 3) return;
+
+    const limpiar = v => v.replace(/<[^>]*>/g, '').trim();
+
+    const posicion = Number(limpiar(cols[0]));
+    const chapa = Number(limpiar(cols[1]));
+    const color = limpiar(cols[2]).toLowerCase();
+
+    if (!isNaN(posicion) && !isNaN(chapa)) {
+      filas.push({ posicion, chapa, color });
+    }
+  });
+
+  console.log('📊 Censo cargado:', filas.length);
+  return filas;
+}
+
+function parsePuertasHTML(html) {
+  const puertas = [];
+  const rows = html.match(/<tr[^>]*>.*?<\/tr>/gi) || [];
+
+  rows.forEach(row => {
+    const cols = row.match(/<td[^>]*>(.*?)<\/td>/gi);
+    if (!cols || cols.length < 3) return;
+
+    const limpiar = v => v.replace(/<[^>]*>/g, '').trim();
+
+    const jornada = limpiar(cols[0]);
+    const puertaSP = limpiar(cols[1]);
+    const puertaOC = limpiar(cols[2]);
+
+    if (jornada) {
+      puertas.push({ jornada, puertaSP, puertaOC });
+    }
+  });
+
+  console.log('🚪 Puertas cargadas:', puertas.length);
+  return { puertas };
+}
+
 const Oraculo = {
   render(container) {
     container.innerHTML = `
