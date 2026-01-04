@@ -1,16 +1,16 @@
 // src/modules/oraculo.js
 
-window.SheetsAPI = {
+    window.SheetsAPI = {
   async getCenso() {
-    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrMuapybwZUEGPR1vsP9p1_nlWvznyl0sPD4xWsNJ7HdXCj1ABY1EpU1um538HHZQyJtoAe5Niwrxq/pubhtml?gid=841547354&single=true';
-    const html = await fetch(url).then(r => r.text());
-    return parseCensoHTML(html);
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrMuapybwZUEGPR1vsP9p1_nlWvznyl0sPD4xWsNJ7HdXCj1ABY1EpU1um538HHZQyJtoAe5Niwrxq/pubhtml?gid=841547354&single=true&output=csv';
+    const csv = await fetch(url).then(r => r.text());
+    return parseCensoCSV(csv);
   },
 
   async getPuertas() {
-    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pubhtml?gid=3770623&single=true';
-    const html = await fetch(url).then(r => r.text());
-    return parsePuertasHTML(html);
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pubhtml?gid=3770623&single=true&output=csv';
+    const csv = await fetch(url).then(r => r.text());
+    return parsePuertasCSV(csv);
   },
 
   async getPosicionChapa(chapa) {
@@ -20,46 +20,40 @@ window.SheetsAPI = {
   }
 };
 
-function parseCensoHTML(html) {
+function parseCensoCSV(csv) {
   const filas = [];
-  const rows = html.match(/<tr[^>]*>.*?<\/tr>/gi) || [];
+  const lines = csv.split('\n').slice(1); // quitar cabecera
 
-  rows.forEach(row => {
-    const cols = row.match(/<td[^>]*>(.*?)<\/td>/gi);
-    if (!cols || cols.length < 3) return;
+  lines.forEach(line => {
+    const [posicion, chapa, color] = line.split(',');
 
-    const limpiar = v => v.replace(/<[^>]*>/g, '').trim();
+    if (!posicion || !chapa) return;
 
-    const posicion = Number(limpiar(cols[0]));
-    const chapa = Number(limpiar(cols[1]));
-    const color = limpiar(cols[2]).toLowerCase();
-
-    if (!isNaN(posicion) && !isNaN(chapa)) {
-      filas.push({ posicion, chapa, color });
-    }
+    filas.push({
+      posicion: Number(posicion.trim()),
+      chapa: Number(chapa.trim()),
+      color: (color || '').trim().toLowerCase()
+    });
   });
 
   console.log('📊 Censo cargado:', filas.length);
   return filas;
 }
 
-function parsePuertasHTML(html) {
+function parsePuertasCSV(csv) {
   const puertas = [];
-  const rows = html.match(/<tr[^>]*>.*?<\/tr>/gi) || [];
+  const lines = csv.split('\n').slice(1);
 
-  rows.forEach(row => {
-    const cols = row.match(/<td[^>]*>(.*?)<\/td>/gi);
-    if (!cols || cols.length < 3) return;
+  lines.forEach(line => {
+    const [jornada, puertaSP, puertaOC] = line.split(',');
 
-    const limpiar = v => v.replace(/<[^>]*>/g, '').trim();
+    if (!jornada) return;
 
-    const jornada = limpiar(cols[0]);
-    const puertaSP = limpiar(cols[1]);
-    const puertaOC = limpiar(cols[2]);
-
-    if (jornada) {
-      puertas.push({ jornada, puertaSP, puertaOC });
-    }
+    puertas.push({
+      jornada: jornada.trim(),
+      puertaSP: (puertaSP || '').trim(),
+      puertaOC: (puertaOC || '').trim()
+    });
   });
 
   console.log('🚪 Puertas cargadas:', puertas.length);
