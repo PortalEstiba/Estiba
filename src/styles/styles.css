@@ -36,12 +36,10 @@ nav button{
 
 .page {
   display: none;
-  pointer-events: none;
 }
 
 .page.active {
   display: block;
-  pointer-events: auto;
 }
 
 .card{
