@@ -752,6 +752,26 @@ window.startOracleDataLoad = function() {
 
   // Iniciar carga
   autoLoadOracleData();
+  const content = document.getElementById('oracle-content');
+
+if (content && window.demandasNoray) {
+  const d = window.demandasNoray;
+
+  content.innerHTML = `
+    <div class="card">
+      <h3>👥 Fijos disponibles</h3>
+      <div style="font-size:2rem;font-weight:700;">${document.getElementById('calc-fijos')?.value || '—'}</div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Previsión</h3>
+
+      <div>🌅 Mañana (08-14): ${d['08-14'].gruas}g / ${d['08-14'].coches}c</div>
+      <div>🌇 Tarde (14-20): ${d['14-20'].gruas}g / ${d['14-20'].coches}c</div>
+      <div>🌙 Noche (20-02): ${d['20-02'].gruas}g / ${d['20-02'].coches}c</div>
+    </div>
+  `;
+}
 };
 
 // FunciÃ³n para cargar datos con barra de progreso fluida
