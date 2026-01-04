@@ -37,6 +37,7 @@ const Oraculo = {
       });
     }
   },
+}; // ← CIERRA EL OBJETO Oraculo
 
 // =============================================================================
 // CALCULADORA PREDICTIVA - EL ORACULO
