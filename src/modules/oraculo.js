@@ -982,6 +982,9 @@ function detectarSiguienteJornada(puertas) {
   return siguienteJornada;
 }
 
+if (!window.oracleChapaSeleccionada) {
+  console.warn('Oráculo iniciado sin chapa seleccionada');
+}
 async function loadCalculadora() {
   var btnCalcular = document.getElementById('btn-calcular-probabilidad');
   var resultadoDiv = document.getElementById('calc-resultado');
@@ -1020,7 +1023,13 @@ async function loadCalculadora() {
   var FACTOR_SEGUNDA_VUELTA = 2.0;  // <-- MODIFICA ESTE VALOR
 
   // Obtener posicion del usuario
-  var posicionUsuario = await SheetsAPI.getPosicionChapa(AppState.currentUser);
+  let posicionUsuario;
+
+if (window.oracleChapaSeleccionada) {
+  posicionUsuario = await SheetsAPI.getPosicionChapa(window.oracleChapaSeleccionada);
+} else {
+  posicionUsuario = await SheetsAPI.getPosicionChapa(AppState.currentUser);
+}
   var esUsuarioOC = posicionUsuario > LIMITE_SP;
 
   // Obtener censo para calcular rojos (no disponibles)
