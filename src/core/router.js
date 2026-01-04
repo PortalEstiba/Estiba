@@ -14,10 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
 import Oraculo from './modules/oraculo.js';
 
 function showPage(page) {
+  // Cerrar cualquier modal/overlay abierto
+  document.querySelectorAll('.modal-overlay, #oracle-loading-section, #oracle-manual-modal')
+    .forEach(el => {
+      el.style.display = 'none';
+      el.style.pointerEvents = 'none';
+    });
+
+  document.body.style.overflow = '';
+
+  // Cambiar de página
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById(`page-${page}`);
-  if (target) {
-    target.classList.add('active');
+  if (target) target.classList.add('active');
+}
 
     // 🔮 Inicializar Oráculo solo cuando se entra
     if (page === 'oraculo') {
