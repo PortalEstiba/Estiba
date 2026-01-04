@@ -4,9 +4,15 @@ const Oraculo = {
     container.innerHTML = `
       <div class="card">
         <h2>🔮 El Oráculo</h2>
-        <p class="muted">
-          Calculadora predictiva de jornadas
-        </p>
+        <p class="muted">Calculadora predictiva de jornadas</p>
+
+        <label class="muted">Tu número de chapa</label>
+        <input 
+          id="oracle-chapa" 
+          type="number" 
+          placeholder="Ej: 245"
+          style="margin-bottom:12px;"
+        >
 
         <button id="oracle-start" class="primary">
           Iniciar Oráculo
