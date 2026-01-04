@@ -471,3 +471,15 @@
   display: none;
   pointer-events: none;
 }
+
+/* =====================================================
+   FIX ROUTER: solo la página activa puede recibir clics
+   ===================================================== */
+
+.page {
+  pointer-events: none;
+}
+
+.page.active {
+  pointer-events: auto;
+}
