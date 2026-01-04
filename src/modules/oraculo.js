@@ -80,6 +80,16 @@ const Oraculo = {
         </button>
 
         <div id="oracle-content" style="margin-top:12px;"></div>
+
+<button 
+  id="btn-calcular-probabilidad" 
+  class="primary"
+  style="margin-top:16px; display:none;"
+>
+  ¿Cuándo voy a trabajar?
+</button>
+
+<div id="calc-resultado" style="margin-top:16px;"></div>
       </div>
     `;
 
@@ -889,6 +899,10 @@ window.autoLoadOracleData = async function() {
 
     // PASO 3: Finalizar
     if (previsionSuccess && fijosSuccess) {
+      const btnCalcular = document.getElementById('btn-calcular-probabilidad');
+if (btnCalcular) {
+  btnCalcular.style.display = 'block';
+}
       await updateProgress(100, 'Â¡Datos cargados con Ã©xito!', 500);
       if (statusText) statusText.textContent = 'â Carga completada';
 
@@ -1464,6 +1478,26 @@ if (window.oracleChapaSeleccionada) {
             console.log('DEBUG Jornada ' + jornada.codigo + ':', {
               demandaBaseOriginal: demandaBase,
               demandasNoray: window.demandasNoray
+                const resultadoDiv = document.getElementById('calc-resultado');
+
+if (!resultadoDiv) return;
+
+// HTML del resultado
+resultadoDiv.innerHTML = `
+  <div class="card probability-high">
+    🎯 <strong>Mejor opción:</strong> ${mejorJornada.nombre}
+    <br>
+    <small>Probabilidad: ${mejorJornada.probabilidad}%</small>
+  </div>
+
+  ${puntuacionesJornadas.map(j => `
+    <div class="card ${j.puntuacion >= 60 ? 'green' : j.puntuacion >= 30 ? 'orange' : 'danger'}">
+      <strong>${j.jornada.nombre}</strong><br>
+      Probabilidad: ${j.puntuacion}%<br>
+      ${j.saleContratado ? '✅ Bastante probable' : '❌ Difícil'}
+    </div>
+  `).join('')}
+`;
             });
 
             // Verificar si hay datos del scraper que indiquen festivo (0 grÃºas y 0 coches)
