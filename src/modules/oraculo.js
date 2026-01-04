@@ -1478,26 +1478,6 @@ if (window.oracleChapaSeleccionada) {
             console.log('DEBUG Jornada ' + jornada.codigo + ':', {
               demandaBaseOriginal: demandaBase,
               demandasNoray: window.demandasNoray
-                const resultadoDiv = document.getElementById('calc-resultado');
-
-if (!resultadoDiv) return;
-
-// HTML del resultado
-resultadoDiv.innerHTML = `
-  <div class="card probability-high">
-    🎯 <strong>Mejor opción:</strong> ${mejorJornada.nombre}
-    <br>
-    <small>Probabilidad: ${mejorJornada.probabilidad}%</small>
-  </div>
-
-  ${puntuacionesJornadas.map(j => `
-    <div class="card ${j.puntuacion >= 60 ? 'green' : j.puntuacion >= 30 ? 'orange' : 'danger'}">
-      <strong>${j.jornada.nombre}</strong><br>
-      Probabilidad: ${j.puntuacion}%<br>
-      ${j.saleContratado ? '✅ Bastante probable' : '❌ Difícil'}
-    </div>
-  `).join('')}
-`;
             });
 
             // Verificar si hay datos del scraper que indiquen festivo (0 grÃºas y 0 coches)
@@ -2078,7 +2058,26 @@ resultadoDiv.innerHTML = `
         resultadoDiv.innerHTML = resumenHTML + resultadosHTML;
         resultadoDiv.classList.remove('hidden');
         resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+const resultadoDiv = document.getElementById('calc-resultado');
 
+if (!resultadoDiv) return;
+
+// HTML del resultado
+resultadoDiv.innerHTML = `
+  <div class="card probability-high">
+    🎯 <strong>Mejor opción:</strong> ${mejorJornada.nombre}
+    <br>
+    <small>Probabilidad: ${mejorJornada.probabilidad}%</small>
+  </div>
+
+  ${puntuacionesJornadas.map(j => `
+    <div class="card ${j.puntuacion >= 60 ? 'green' : j.puntuacion >= 30 ? 'orange' : 'danger'}">
+      <strong>${j.jornada.nombre}</strong><br>
+      Probabilidad: ${j.puntuacion}%<br>
+      ${j.saleContratado ? '✅ Bastante probable' : '❌ Difícil'}
+    </div>
+  `).join('')}
+`;
       } catch (error) {
         console.error('Error:', error);
         alert('Error al calcular: ' + error.message);
