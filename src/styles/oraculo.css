@@ -460,3 +460,14 @@
     font-size: 1rem;
   }
 }
+
+/* =====================================================
+   FIX GLOBAL: evitar overlays invisibles bloqueando clics
+   ===================================================== */
+
+.modal-overlay,
+#oracle-loading-section,
+#oracle-manual-modal {
+  display: none;
+  pointer-events: none;
+}
