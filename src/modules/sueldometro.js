@@ -147,6 +147,50 @@ function resumen(arr){
   return {bruto,neto,count:arr.length};
 }
 
+function createQuincenaCard(year, month, quincena, jornales) {
+  const rangoInicio = quincena === 1 ? 1 : 16;
+  const rangoFin = quincena === 1 ? 15 : new Date(year, month, 0).getDate();
+
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const header = document.createElement('div');
+  header.style.cursor = 'pointer';
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+
+  header.innerHTML = `
+    <strong>📅 ${rangoInicio}-${rangoFin}</strong>
+    <span class="muted">${jornales.length} jornales</span>
+  `;
+
+  const body = document.createElement('div');
+  body.style.display = 'none';
+  body.style.marginTop = '10px';
+
+  body.innerHTML = jornales.map(j => `
+    <div class="row">
+      <div>
+        <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
+        <div class="muted">${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}</div>
+      </div>
+      <div class="right">
+        <strong>${total(j).toFixed(2)} €</strong>
+      </div>
+    </div>
+  `).join('') || '<p class="muted">Sin jornales</p>';
+
+  header.onclick = () => {
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+  };
+
+  card.appendChild(header);
+  card.appendChild(body);
+
+  return card;
+}
+
 function render(container){
   const s=load();
 
@@ -182,6 +226,7 @@ function render(container){
   ${s.vista === 'quincena' ? `
     <div class="card">
       <h3>📅 Quincena 1 (1–15)</h3>
+<div id="vista-quincena-1"></div>
       ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
       <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
@@ -189,6 +234,7 @@ function render(container){
 
     <div class="card">
       <h3>📅 Quincena 2 (16–fin)</h3>
+<div id="vista-quincena-2"></div>
       ${q2.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
       <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
@@ -208,7 +254,24 @@ function render(container){
     <button id="pdf">Exportar PDF</button>
   </div>
   `;
+  
+// Render vista nueva de quincenas (tarjetas plegables)
+if (s.vista === 'quincena') {
+  const q1Container = document.getElementById('vista-quincena-1');
+  const q2Container = document.getElementById('vista-quincena-2');
 
+  if (q1Container) {
+    q1Container.appendChild(
+      createQuincenaCard(s.anio, s.mes + 1, 1, q1)
+    );
+  }
+
+  if (q2Container) {
+    q2Container.appendChild(
+      createQuincenaCard(s.anio, s.mes + 1, 2, q2)
+    );
+  }
+}
   function fila(j){
     return `<div class="row">
       <div>
