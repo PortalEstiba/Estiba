@@ -53,13 +53,22 @@ function parseCenso(csv) {
   return csv
     .split('\n')
     .slice(1)
-    .map(l => {
-      const [pos, chapa, color] = l.split(',');
-      if (!pos || !chapa) return null;
+    .map(line => {
+      if (!line.trim()) return null;
+
+      // Detectar separador automáticamente
+      const sep = line.includes(';') ? ';' : ',';
+      const cols = line.split(sep).map(c => c.trim());
+
+      // Ajusta índices si tu hoja tiene más columnas
+      const posicion = Number(cols[0]);
+      const chapa = Number(cols[1]);
+
+      if (!posicion || !chapa) return null;
+
       return {
-        posicion: Number(pos),
-        chapa: Number(chapa),
-        color: (color || '').trim().toLowerCase()
+        posicion,
+        chapa
       };
     })
     .filter(Boolean);
@@ -145,8 +154,10 @@ async function iniciarOraculo() {
     OracleState.chapa = chapa;
     OracleState.censo = await SheetsAPI.getCenso();
     OracleState.puertas = await SheetsAPI.getPuertas();
+    
+    console.log('Censo cargado:', OracleState.censo.slice(0, 5));
 
-    const fila = OracleState.censo.find(f => f.chapa === chapa);
+    const fila = OracleState.censo.find(f => Number(f.chapa) === Number(chapa));
     OracleState.posicion = fila ? fila.posicion : null;
 
     if (!OracleState.posicion) {
