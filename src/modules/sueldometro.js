@@ -263,18 +263,19 @@ function abrirModalNuevoJornal() {
 
     <input id="p" type="number" placeholder="Precio €">
 
-    <!-- MOVIMIENTOS (solo contenedor) -->
-    <input id="mov" type="number" placeholder="Movimientos">
+    <!-- MOVIMIENTOS -->
+<input id="mov" type="number" placeholder="Movimientos">
 
-    <!-- TRINCA -->
-    <div id="trincaFields" class="hidden">
-      <input id="barras" type="number" placeholder="Varillas de trinca">
+<!-- TRINCA (solo si especialidad = Trinca) -->
+<div id="trincaFields" class="hidden">
+  <input id="barras" type="number" placeholder="Varillas de trinca">
 
-      <select id="tipoTrinca">
-        <option value="TRINCA">Trinca</option>
-        <option value="DESTRINCA">Destrinca</option>
-      </select>
-    </div>
+  <select id="tipoTrinca">
+    <option value="">Tipo de trinca</option>
+    <option value="TRINCA">Trinca</option>
+    <option value="DESTRINCA">Destrinca</option>
+  </select>
+</div>
 
     <!-- PREVIEW -->
     <div id="primaPreview" class="prima-preview">
@@ -356,6 +357,9 @@ especialidad.addEventListener('change', () => {
   toggleCamposPorEspecialidad();
   actualizarPreview(); // opcional pero recomendable
 });
+// estado inicial limpio
+mov.classList.remove('hidden');
+trincaFields.classList.add('hidden');
 
 toggleCamposPorEspecialidad();
   function actualizarPreview() {
