@@ -588,3 +588,23 @@ input, select{
   color: var(--primary);
   font-weight: 600;
 }
+/* ============================
+   SUELDÓMETRO – BOTÓN AÑADIR
+   ============================ */
+
+.sueldometro-header .header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.btn-add-jornal {
+  background: linear-gradient(135deg, #0b2a4a, #1abc9c);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
