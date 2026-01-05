@@ -422,25 +422,48 @@ toggleCamposPorEspecialidad();
 
   const tipoDia = detectarTipoDia(f.value, jornada.value);
 
-  const data = calcularPreviewCompleto({
-    jornada: jornada.value,
+  // Precio base
+  const precio = +p.value || 0;
+
+  // MOVIMIENTOS
+  const movimientos = +mov.value || 0;
+  const prima = calcularPrima(jornada.value, tipoDia, movimientos);
+
+  // TRINCA
+  let trinca = 0;
+  if (!trincaFields.classList.contains('hidden')) {
+    trinca = calcularPrimaTrinca(
+      jornada.value,
+      tipoDia,
+      +barras.value || 0,
+      tipoTrinca.value
+    );
+  }
+
+  // RELEVO
+  const relevo€ = calcularRelevo(
+    jornada.value,
     tipoDia,
-    especialidad: especialidad.value,
-    movimientos: +mov.value || 0,
-    barrasTrinca: +barras.value || 0,
-    tipoTrinca: tipoTrinca.value,
-    horasRelevo: +relevo.value || 0,
-    horasRemate: +remate.value || 0,
-    precioBase: +p.value || 0
-  });
+    +relevo.value || 0
+  );
+
+  // REMATE
+  const remate€ = calcularRemate(
+    jornada.value,
+    tipoDia,
+    +remate.value || 0
+  );
+
+  const totalPreview =
+    precio + prima + trinca + relevo€ + remate€;
 
   preview.innerHTML = `
-    <strong>Tipo:</strong> ${tipoDia}<br>
-    <strong>Prima:</strong> ${data.primaMov.toFixed(2)} €<br>
-    <strong>Trinca:</strong> ${data.primaTrinca.toFixed(2)} €<br>
-    <strong>Relevo:</strong> ${data.relevo.toFixed(2)} €<br>
-    <strong>Remate:</strong> ${data.remate.toFixed(2)} €<br>
-    <strong>Total:</strong> ${data.total.toFixed(2)} €
+    Tipo: ${tipoDia}<br>
+    Prima: ${prima.toFixed(2)} €<br>
+    Trinca: ${trinca.toFixed(2)} €<br>
+    Relevo: ${relevo€.toFixed(2)} €<br>
+    Remate: ${remate€.toFixed(2)} €<br>
+    <strong>Total: ${totalPreview.toFixed(2)} €</strong>
   `;
 }
 
