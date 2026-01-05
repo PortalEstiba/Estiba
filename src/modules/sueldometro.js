@@ -147,7 +147,200 @@ function resumen(arr){
   return {bruto,neto,count:arr.length};
 }
 function createQuincenaCard(year, month, quincena, jornales) {
-  // 👈 pega aquí EXACTAMENTE el código que me has pasado
+  /**
+ * Crea una tarjeta de quincena con datos resumidos
+ */
+function createQuincenaCard(year, month, quincena, jornales) {
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const monthName = monthNames[month - 1];
+
+  // Determinar rango de días
+  const rangoInicio = quincena === 1 ? 1 : 16;
+  const rangoFin = quincena === 1 ? 15 : new Date(year, month, 0).getDate();
+
+  // Calcular estadísticas
+  const totalJornales = jornales.length;
+
+  // Ordenar jornales por fecha y jornada
+  const jornalesOrdenados = sortJornalesByDateAndShift([...jornales]);
+
+  const formatValue = (value, fallback = '--') => {
+    if (value === null || value === undefined || value === '') {
+      return fallback;
+    }
+    return value;
+  };
+
+  // Desglose por empresa
+  const porEmpresa = {};
+  jornales.forEach(j => {
+    const empresa = j.empresa || 'Sin especificar';
+    porEmpresa[empresa] = (porEmpresa[empresa] || 0) + 1;
+  });
+
+  // Desglose por puesto
+  const porPuesto = {};
+  jornales.forEach(j => {
+    const puesto = j.puesto || 'Sin especificar';
+    porPuesto[puesto] = (porPuesto[puesto] || 0) + 1;
+  });
+
+  // Crear card
+  const card = document.createElement('div');
+  card.className = 'quincena-card';
+  card.style.marginBottom = '0.75rem';
+  card.style.border = '1px solid var(--border-color)';
+  card.style.borderRadius = '8px';
+  card.style.overflow = 'hidden';
+  card.style.background = 'white';
+
+  // Emoji de calendario según quincena
+  const emojiCalendario = quincena === 1 ? '📅' : '🗓️';
+
+  // Formato de mes en 3 letras mayúsculas
+  const monthShort = monthName.substring(0, 3).toUpperCase();
+
+  // Header simple - una sola línea con la información de la quincena
+  const header = document.createElement('div');
+  header.className = 'quincena-header';
+  header.style.padding = '1rem 1.25rem';
+  header.style.background = 'white';
+  header.style.cursor = 'pointer';
+  header.style.userSelect = 'none';
+  header.style.transition = 'all 0.2s ease';
+  header.style.display = 'flex';
+  header.style.alignItems = 'center';
+  header.style.gap = '0.75rem';
+  header.style.borderBottom = '1px solid var(--border-color)';
+
+  header.innerHTML = `
+    <span style="font-size: 1.3rem;">${emojiCalendario}</span>
+    <span style="font-size: 1rem; font-weight: 600; color: #000;">${rangoInicio}-${rangoFin} ${monthShort}</span>
+    <span style="font-size: 0.85rem; color: #666; margin-left: 0.5rem;">${totalJornales} jornales</span>
+    <svg class="expand-icon" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; margin-left: auto; transition: transform 0.3s; flex-shrink: 0;" fill="none" viewBox="0 0 24 24" stroke="#666" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  `;
+
+  // Efectos hover para hacer más obvio que es clickeable
+  header.addEventListener('mouseenter', () => {
+    header.style.background = 'var(--bg-secondary)';
+  });
+  header.addEventListener('mouseleave', () => {
+    header.style.background = 'white';
+  });
+
+  // Body (inicialmente oculto)
+  const body = document.createElement('div');
+  body.className = 'quincena-body';
+  body.style.display = 'none';
+  body.style.padding = '1.25rem';
+
+  // Resumen por empresa
+  const empresasHTML = Object.entries(porEmpresa)
+    .sort((a, b) => b[1] - a[1])
+    .map(([empresa, count]) => `
+      <div class="jornales-summary-item">
+        <span>${empresa}</span>
+        <span class="jornales-summary-value">${count} jornales</span>
+      </div>
+    `).join('');
+
+  // Resumen por puesto
+  const puestosHTML = Object.entries(porPuesto)
+    .sort((a, b) => b[1] - a[1])
+    .map(([puesto, count]) => `
+      <div class="jornales-summary-item">
+        <span>${puesto}</span>
+        <span class="jornales-summary-value green">${count} jornales</span>
+      </div>
+    `).join('');
+
+  body.innerHTML = `
+    <div class="jornales-summary-grid">
+      <div class="jornales-summary-block">
+        <h4>📊 Por Empresa</h4>
+        ${empresasHTML}
+      </div>
+      <div class="jornales-summary-block">
+        <h4>👷 Por Puesto</h4>
+        ${puestosHTML}
+      </div>
+    </div>
+
+    <div>
+      <h4 style="margin-bottom: 0.75rem; color: var(--puerto-blue);">📋 Detalle de Jornales</h4>
+      <div class="jornales-cards">
+        ${jornalesOrdenados.map(row => {
+          const fechaDisplay = formatValue(formatearFecha(row.fecha));
+          const jornadaDisplay = formatValue(row.jornada);
+          const puestoDisplay = formatValue(row.puesto, 'Sin puesto');
+          const empresaDisplay = formatValue(row.empresa, 'Sin empresa');
+          const buqueDisplay = formatValue(row.buque);
+          const parteDisplay = formatValue(row.parte);
+          const origenLabel = row.manual ? 'Manual' : (row.origen ? row.origen.toUpperCase() : 'Sistema');
+          const jornadaClass = jornadaDisplay !== '--' ? `badge-${jornadaDisplay.replace(/\\s+/g, '')}` : '';
+          return `
+            <div class="jornal-card" role="button" tabindex="0"
+                 data-jornal-id="${row.id || ''}"
+                 data-fecha="${row.fecha || ''}"
+                 data-fecha-display="${fechaDisplay}"
+                 data-jornada="${jornadaDisplay}"
+                 data-puesto="${puestoDisplay}"
+                 data-empresa="${empresaDisplay}"
+                 data-buque="${buqueDisplay}"
+                 data-parte="${parteDisplay}"
+                 data-origen="${origenLabel}">
+              <div class="jornal-card-header">
+                <div class="jornal-card-date">${fechaDisplay}</div>
+                <div class="jornal-card-badges">
+                  <span class="badge ${jornadaClass}">${jornadaDisplay}</span>
+                  ${row.manual ? '<span class="badge-manual" title="Añadido manualmente">Manual</span>' : ''}
+                </div>
+              </div>
+              <div class="jornal-card-title">${puestoDisplay}</div>
+              <div class="jornal-card-subtitle">${empresaDisplay}</div>
+              <div class="jornal-card-meta">
+                <div class="jornal-card-meta-row">
+                  <span class="meta-label">Buque</span>
+                  <span class="meta-value">${buqueDisplay}</span>
+                </div>
+                <div class="jornal-card-meta-row">
+                  <span class="meta-label">Parte</span>
+                  <span class="meta-value">${parteDisplay}</span>
+                </div>
+              </div>
+              <div class="jornal-card-actions">
+                <button class="btn-view-jornal" type="button">Ver detalles</button>
+                <button class="btn-delete-jornal" data-jornal-id="${row.id}" title="Eliminar jornal" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px; vertical-align: middle;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  // Click handler para toggle expand/collapse
+  header.addEventListener('click', () => {
+    const isExpanded = body.style.display !== 'none';
+    body.style.display = isExpanded ? 'none' : 'block';
+    const icon = header.querySelector('.expand-icon');
+    icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+  });
+
+  card.appendChild(header);
+  card.appendChild(body);
+
+  return card;
+}
+
+  `;
 }
 function render(container){
   const s=load();
@@ -184,7 +377,8 @@ function render(container){
   ${s.vista === 'quincena' ? `
     <div class="card">
       <h3>📅 Quincena 1 (1–15)</h3>
-      ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
+      <div id="vista-quincena-1"></div>
+<div id="vista-quincena-2"></div>
       <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
     </div>
@@ -203,7 +397,25 @@ function render(container){
       <p class="green"><strong>Total Neto Mes: ${rMes.neto.toFixed(2)} €</strong></p>
     </div>
   `}
+// ================================
+// RENDER TARJETAS DE QUINCENA (VISTA NUEVA)
+// ================================
+if (s.vista === 'quincena') {
+  const q1Container = document.getElementById('vista-quincena-1');
+  const q2Container = document.getElementById('vista-quincena-2');
 
+  if (q1Container) {
+    q1Container.appendChild(
+      createQuincenaCard(s.anio, s.mes + 1, 1, q1)
+    );
+  }
+
+  if (q2Container) {
+    q2Container.appendChild(
+      createQuincenaCard(s.anio, s.mes + 1, 2, q2)
+    );
+  }
+}
   <div class="card">
     <h3>📤 Exportar</h3>
     <button id="csv" class="primary">Exportar Excel</button>
