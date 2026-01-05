@@ -49,7 +49,7 @@ export default {
     container.innerHTML = `
       <div class="card">
         <h2>Bienvenido/a</h2>
-        <p>Aplicación creada solamente para un sueldómetro gratuito.</p>
+        <p>Aplicación creada solamente para un sueldómetro y oraculo gratuito.</p>
       </div>
 
       ${categorias.map(cat => `
