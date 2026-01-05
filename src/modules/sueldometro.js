@@ -219,9 +219,15 @@ function render(container){
 
     <div class="grid">
       <label>Mes
-        <select id="mes">${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}</select>
+        <select id="mes">
+          ${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}
+        </select>
       </label>
-      <label>Año <input id="anio" type="number" value="${s.anio}"></label>
+
+      <label>Año
+        <input id="anio" type="number" value="${s.anio}">
+      </label>
+
       <label>Vista
         <select id="vista">
           <option value="mensual" ${s.vista==='mensual'?'selected':''}>Mensual</option>
@@ -230,22 +236,18 @@ function render(container){
       </label>
     </div>
   </div>
-  ;
-const btnAdd = document.getElementById('btnAddJornal');
-btnAdd.onclick = () => {
-  modal.classList.remove('hidden');
-};
+
   ${s.vista === 'quincena' ? `
     <div class="card">
       <h3>📅 Quincena 1 (1–15)</h3>
-<div id="vista-quincena-1"></div>
+      <div id="vista-quincena-1"></div>
       <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
     </div>
 
     <div class="card">
       <h3>📅 Quincena 2 (16–fin)</h3>
-<div id="vista-quincena-2"></div>
+      <div id="vista-quincena-2"></div>
       <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
     </div>
@@ -263,7 +265,13 @@ btnAdd.onclick = () => {
     <button id="csv" class="primary">Exportar Excel</button>
     <button id="pdf">Exportar PDF</button>
   </div>
-  `;
+`;
+const btnAdd = document.getElementById('btnAddJornal');
+if (btnAdd) {
+  btnAdd.onclick = () => {
+    modal.classList.remove('hidden');
+  };
+}
   
 // Render vista nueva de quincenas (tarjetas plegables)
 if (s.vista === 'quincena') {
