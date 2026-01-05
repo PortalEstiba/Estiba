@@ -223,3 +223,15 @@ input, select{
   height: 32px;
   font-size: 16px;
 }
+/* ============================
+   MODAL ADD JORNAL – FIX GRID
+   ============================ */
+
+@media (max-width: 600px) {
+  .modal-content .grid {
+    grid-template-columns: 1fr;
+  }
+}
+.prima-preview {
+  grid-column: 1 / -1;
+}
