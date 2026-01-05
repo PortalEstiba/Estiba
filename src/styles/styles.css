@@ -224,14 +224,25 @@ input, select{
   font-size: 16px;
 }
 /* ============================
-   MODAL ADD JORNAL – FIX GRID
+   MODAL ADD JORNAL – FIX DEFINITIVO
    ============================ */
 
 @media (max-width: 600px) {
-  .modal-content .grid {
-    grid-template-columns: 1fr;
+  .modal-content #modalFormContainer .grid {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 14px;
   }
 }
 .prima-preview {
   grid-column: 1 / -1;
+}
+/* Forzar stacking visual en modal */
+.modal-content > * {
+  max-width: 100%;
+}
+.modal-content input:not(.grid input),
+.modal-content select:not(.grid select),
+.modal-content .prima-preview {
+  width: 100%;
 }
