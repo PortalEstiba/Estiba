@@ -323,7 +323,6 @@ requestAnimationFrame(() => {
 });
 
   const f = document.getElementById('f');
-  const mov = document.getElementById('mov');
   const jornada = document.getElementById('jornada');
   const preview = document.getElementById('primaPreview');
   const p = document.getElementById('p');
@@ -386,10 +385,10 @@ toggleCamposPorEspecialidad();
   movimientos: +mov.value || 0,
 
   // NUEVO (por ahora a 0)
-  barrasTrinca: 0,
-  tipoTrinca: null,
-  horasRelevo: 0,
-  horasRemate: 0,
+  barrasTrinca: +barras.value || 0,
+tipoTrinca: tipoTrinca.value || null,
+horasRelevo: +relevo.value || 0,
+horasRemate: +remate.value || 0,
 
   tipoDia: tipo,
   prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
