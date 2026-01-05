@@ -1,7 +1,7 @@
 // src/modules/sueldometro.js
 // Sueldómetro v11.4 — Editar y borrar jornales SIN perder funciones
-
-//import { exportCSV, exportPDF } from './exporter.js';
+alert('sueldometro.js cargado');
+import { exportCSV, exportPDF } from './exporter.js';
 
 const STORAGE_KEY = 'sueldometro_v11';
 
@@ -640,8 +640,8 @@ if (s.vista === 'quincena') {
   document.getElementById('anio').onchange=e=>{s.anio=+e.target.value;save(s);render(container)}
   document.getElementById('vista').onchange=e=>{s.vista=e.target.value;save(s);render(container)}
 
-  //document.getElementById('csv').onclick=()=>exportCSV(mesJ,s.mes,s.anio)
-  //document.getElementById('pdf').onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
+  document.getElementById('csv').onclick=()=>exportCSV(mesJ,s.mes,s.anio)
+  document.getElementById('pdf').onclick=()=>exportPDF(`Sueldómetro ${MONTHS[s.mes]} ${s.anio}`)
 }
 
 /* ================================
