@@ -345,16 +345,16 @@ function toggleCamposPorEspecialidad() {
     esp === 'Trinca de Coches';
 
   if (esTrinca) {
-    mov.classList.add('hidden');
-    trincaFields.classList.remove('hidden');
+    mov.classList.add('hidden');        // ocultar movimientos
+    trincaFields.classList.remove('hidden'); // mostrar trinca
   } else {
-    mov.classList.remove('hidden');
-    trincaFields.classList.add('hidden');
+    mov.classList.remove('hidden');     // mostrar movimientos
+    trincaFields.classList.add('hidden');    // ocultar trinca
   }
 }
 especialidad.addEventListener('change', () => {
   toggleCamposPorEspecialidad();
-  actualizarPreview();
+  actualizarPreview(); // opcional pero recomendable
 });
 
 toggleCamposPorEspecialidad();
