@@ -5,7 +5,7 @@
 
 :root {
   --bg: #f2f5fa;
-  --card: #ffffff;
+
   --primary: #0b2a4a;
   --primary-soft: #e6f0f7;
   --accent: #ff8c1a;
@@ -666,4 +666,7 @@ input, select{
   appearance: none;
   -webkit-appearance: none;
   padding-right: 14px; /* evita que el icono sobresalga */
+}
+.hidden {
+  display: none !important;
 }
