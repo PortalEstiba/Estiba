@@ -289,11 +289,20 @@ function createQuincenaCard(year, month, quincena, jornales) {
     <div>
       <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
       <div class="muted">
-  ${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}
-  ${j.barrasTrinca ? `<br>🪢 Trinca: ${j.barrasTrinca} varillas (${j.tipoTrinca})` : ''}
-  ${j.horasRelevo ? `<br>⏱️ Relevo: ${j.horasRelevo} h` : ''}
-  ${j.horasRemate ? `<br>🔧 Remate: ${j.horasRemate} h` : ''}
-</div>
+        ${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}
+        ${j.barrasTrinca ? `<br>🪢 Trinca: ${j.barrasTrinca} varillas (${j.tipoTrinca})` : ''}
+        ${j.horasRelevo ? `<br>⏱️ Relevo: ${j.horasRelevo} h` : ''}
+        ${j.horasRemate ? `<br>🔧 Remate: ${j.horasRemate} h` : ''}
+      </div>
+    </div>   
+
+    <div class="right">
+      <strong>${total(j).toFixed(2)} €</strong>
+      <button data-edit="${j.id}">✏️</button>
+      <button data-del="${j.id}" class="danger">🗑️</button>
+    </div>
+  </div>
+`).join('') || '<p class="muted">Sin jornales</p>';
     <div class="right">
       <strong>${total(j).toFixed(2)} €</strong>
       <button data-edit="${j.id}">✏️</button>
