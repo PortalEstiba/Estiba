@@ -230,6 +230,7 @@ function render(container){
       </label>
     </div>
   </div>
+  ;
 const btnAdd = document.getElementById('btnAddJornal');
 btnAdd.onclick = () => {
   modal.classList.remove('hidden');
