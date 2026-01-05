@@ -295,7 +295,8 @@ function createQuincenaCard(year, month, quincena, jornales) {
         ${j.horasRemate ? `<br>🔧 Remate: ${j.horasRemate} h` : ''}
       </div>
     </div>   
-
+    `).join('') || '<p class="muted">Sin jornales</p>';
+    
     <div class="right">
       <strong>${total(j).toFixed(2)} €</strong>
       <button data-edit="${j.id}">✏️</button>
