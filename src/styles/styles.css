@@ -650,3 +650,20 @@ input, select{
 .page {
   -webkit-overflow-scrolling: touch;
 }
+/* ============================
+   FIX INPUT DATE / SELECT iOS
+   ============================ */
+
+.modal-content input,
+.modal-content select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix específico iOS para date */
+.modal-content input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 14px; /* evita que el icono sobresalga */
+}
