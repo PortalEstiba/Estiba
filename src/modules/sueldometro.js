@@ -76,6 +76,32 @@ const PRIMAS = {
   }
 };
 
+// ================================
+// TARIFAS TRINCA / RELEVO / REMATE
+// ================================
+
+const TARIFAS_TRINCA = {
+  '02-08_LABORABLE_TRINCA': 0.55,
+  '02-08_LABORABLE_DESTRINCA': 0.60,
+
+  '08-14_LABORABLE_TRINCA': 0.45,
+  '08-14_LABORABLE_DESTRINCA': 0.50,
+
+  '20-02_FESTIVO_TRINCA': 1.10,
+  '20-02_FESTIVO_DESTRINCA': 1.20
+};
+
+const TARIFA_RELEVO = {
+  NORMAL: 64.31,
+  ESPECIAL: 93.55
+};
+
+const TARIFA_REMATE = {
+  '02-08_LABORABLE': 61.40,
+  '08-14_LABORABLE': 29.02,
+  '14-20_FESTIVO': 110.99,
+  '20-02_SABADO': 76.85
+};
 const defaultState = {
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
@@ -86,7 +112,14 @@ const defaultState = {
 function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defaultState}catch{return defaultState}}
 function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function q(f){ return new Date(f).getDate()<=15?'q1':'q2' }
-function total(j){ return j.precio + (j.prima||0) }
+function total(j){
+  return (
+    j.precio
+    + (j.prima || 0)
+    + calcularRelevo(j.jornada, j.tipoDia, j.horasRelevo || 0)
+    + calcularRemate(j.jornada, j.tipoDia, j.horasRemate || 0)
+  );
+}
 function detectarTipoDia(fecha, jornada) {
   const d = new Date(fecha + 'T00:00:00'); // fuerza mismo día local
   const diaSemana = d.getDay(); // 0 domingo, 6 sábado
@@ -146,7 +179,37 @@ function resumen(arr){
   });
   return {bruto,neto,count:arr.length};
 }
+function calcularPrimaTrinca(jornada, tipoDia, barras, tipoOperacion) {
+  if (!barras || barras <= 0) return 0;
 
+  const clave = `${jornada}_${tipoDia}_${tipoOperacion}`;
+  const tarifa = TARIFAS_TRINCA[clave] || 0;
+
+  return barras * tarifa;
+}
+
+function calcularRelevo(jornada, tipoDia, horas) {
+  if (!horas || horas === 0) return 0;
+
+  const esEspecial =
+    tipoDia.includes('FEST') ||
+    (tipoDia === 'SABADO' && (jornada === '14-20' || jornada === '20-02'));
+
+  const tarifa = esEspecial
+    ? TARIFA_RELEVO.ESPECIAL
+    : TARIFA_RELEVO.NORMAL;
+
+  return horas * tarifa;
+}
+
+function calcularRemate(jornada, tipoDia, horas) {
+  if (!horas || horas === 0) return 0;
+
+  const clave = `${jornada}_${tipoDia}`;
+  const tarifa = TARIFA_REMATE[clave] || 0;
+
+  return horas * tarifa;
+}
 function createQuincenaCard(year, month, quincena, jornales) {
   const rangoInicio = quincena === 1 ? 1 : 16;
   const rangoFin = quincena === 1 ? 15 : new Date(year, month, 0).getDate();
@@ -260,19 +323,28 @@ requestAnimationFrame(() => {
     const tipo = detectarTipoDia(f.value, jornada.value);
 
     s.jornales.push({
-      id: Date.now(),
-      fecha: f.value,
-      precio: +p.value,
-      movimientos: +mov.value || 0,
-      tipoDia: tipo,
-      prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
-      irpf: +i.value || 0,
-      jornada: jornada.value,
-      especialidad: especialidad.value,
-      empresa: empresa.value,
-      barco: barco.value,
-      parte: parte.value
-    });
+  id: Date.now(),
+  fecha: f.value,
+  precio: +p.value,
+
+  movimientos: +mov.value || 0,
+
+  // NUEVO (por ahora a 0)
+  barrasTrinca: 0,
+  tipoTrinca: null,
+  horasRelevo: 0,
+  horasRemate: 0,
+
+  tipoDia: tipo,
+  prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
+  irpf: +i.value || 0,
+
+  jornada: jornada.value,
+  especialidad: especialidad.value,
+  empresa: empresa.value,
+  barco: barco.value,
+  parte: parte.value
+});
 
     save(s);
     modal.classList.add('hidden');
