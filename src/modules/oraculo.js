@@ -228,11 +228,4 @@ function calcularOraculo() {
   `;
 }
 
-const Oraculo = {
-  render(container) {
-    container.innerHTML = `<div id="oraculo-root"></div>`;
-    // aquí luego renderizas todo
-  }
-};
-
 export default Oraculo;
