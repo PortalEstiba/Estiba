@@ -257,35 +257,64 @@ function createQuincenaCard(year, month, quincena, jornales) {
 }
 function abrirModalNuevoJornal() {
   modalContainer.innerHTML = `
-    <div class="grid">
-      <input id="f" type="date">
-      <input id="p" type="number" placeholder="Precio €">
-      <input id="mov" type="number" placeholder="Movimientos">
+  <div class="grid">
 
-      <div id="primaPreview" class="prima-preview">
-        Selecciona fecha y jornada
-      </div>
+    <input id="f" type="date">
 
-      <input id="i" type="number" placeholder="IRPF %">
+    <input id="p" type="number" placeholder="Precio €">
 
-      <select id="jornada">
-        ${JORNADAS.map(x => `<option>${x}</option>`).join('')}
+    <!-- MOVIMIENTOS (solo contenedor) -->
+    <input id="mov" type="number" placeholder="Movimientos">
+
+    <!-- TRINCA -->
+    <div id="trincaFields" class="hidden">
+      <input id="barras" type="number" placeholder="Varillas de trinca">
+
+      <select id="tipoTrinca">
+        <option value="TRINCA">Trinca</option>
+        <option value="DESTRINCA">Destrinca</option>
       </select>
-
-      <select id="especialidad">
-        ${ESPECIALIDADES.map(x => `<option>${x}</option>`).join('')}
-      </select>
-
-      <select id="empresa">
-        ${EMPRESAS.map(x => `<option>${x}</option>`).join('')}
-      </select>
-
-      <input id="barco" placeholder="Barco">
-      <input id="parte" placeholder="Parte">
     </div>
 
-    <button id="guardar" class="primary">Guardar jornal</button>
-  `;
+    <!-- PREVIEW -->
+    <div id="primaPreview" class="prima-preview">
+      Selecciona fecha y jornada
+    </div>
+
+    <input id="i" type="number" placeholder="IRPF %">
+
+    <select id="jornada">
+      ${JORNADAS.map(x => `<option>${x}</option>`).join('')}
+    </select>
+
+    <select id="especialidad">
+      ${ESPECIALIDADES.map(x => `<option>${x}</option>`).join('')}
+    </select>
+
+    <select id="empresa">
+      ${EMPRESAS.map(x => `<option>${x}</option>`).join('')}
+    </select>
+
+    <!-- RELEVO -->
+    <select id="relevo">
+      <option value="0">Relevo: No</option>
+      <option value="1">Relevo: 1h</option>
+    </select>
+
+    <!-- REMATE -->
+    <select id="remate">
+      <option value="0">Remate: 0h</option>
+      <option value="1">Remate: 1h</option>
+      <option value="2">Remate: 2h</option>
+    </select>
+
+    <input id="barco" placeholder="Barco">
+    <input id="parte" placeholder="Parte">
+
+  </div>
+
+  <button id="guardar" class="primary">Guardar jornal</button>
+`;
 
   modal.classList.remove('hidden');
 requestAnimationFrame(() => {
