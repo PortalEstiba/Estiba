@@ -178,8 +178,48 @@ input, select{
 .link-card.green { background: #16a34a; }
 .link-card.purple { background: #7c3aed; }
 .prima-preview {
-  margin-top: 6px;
+  grid-column: 1 / -1;
+  background: #ecfeff;
+  border: 1px solid #67e8f9;
+  padding: 10px 12px;
+  border-radius: 12px;
   font-size: 0.9rem;
   color: #0f766e;
   font-weight: 600;
+}
+
+/* ============================
+   MODAL ADD JORNAL – MOBILE UX
+   ============================ */
+
+.modal-content .grid {
+  gap: 14px;
+}
+
+@media (max-width: 600px) {
+  .modal-content input,
+  .modal-content select {
+    font-size: 16px;
+    padding: 12px;
+  }
+}
+.modal-content button.primary {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  font-size: 16px;
+  border-radius: 14px;
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal-header button {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
 }
