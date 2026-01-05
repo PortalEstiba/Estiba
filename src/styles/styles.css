@@ -635,3 +635,18 @@ input, select{
   transform: translateY(0) scale(1);
   opacity: 1;
 }
+/* ============================
+   FIX SCROLL + MENU INFERIOR
+   ============================ */
+
+.page {
+  padding-bottom: 120px; /* espacio para el menú inferior */
+}
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .page {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  }
+}
+.page {
+  -webkit-overflow-scrolling: touch;
+}
