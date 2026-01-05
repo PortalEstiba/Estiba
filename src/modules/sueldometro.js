@@ -208,9 +208,15 @@ function render(container){
   const r1=resumen(q1);
   const r2=resumen(q2);
 
-  container.innerHTML=`
-  <div class="card">
-    <h2>📊 Vista ${s.vista === 'quincena' ? 'quincenal' : 'mensual'}</h2>
+  container.innerHTML = `
+  <div class="card sueldometro-header">
+    <div class="header-row">
+      <h2>💶 Sueldómetro</h2>
+      <button id="btnAddJornal" class="btn-add-jornal">
+        + Añadir
+      </button>
+    </div>
+
     <div class="grid">
       <label>Mes
         <select id="mes">${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}</select>
@@ -224,7 +230,10 @@ function render(container){
       </label>
     </div>
   </div>
-
+const btnAdd = document.getElementById('btnAddJornal');
+btnAdd.onclick = () => {
+  modal.classList.remove('hidden');
+};
   ${s.vista === 'quincena' ? `
     <div class="card">
       <h3>📅 Quincena 1 (1–15)</h3>
