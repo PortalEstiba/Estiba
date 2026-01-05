@@ -288,8 +288,12 @@ function createQuincenaCard(year, month, quincena, jornales) {
   <div class="row">
     <div>
       <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
-      <div class="muted">${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}</div>
-    </div>
+      <div class="muted">
+  ${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}
+  ${j.barrasTrinca ? `<br>🪢 Trinca: ${j.barrasTrinca} varillas (${j.tipoTrinca})` : ''}
+  ${j.horasRelevo ? `<br>⏱️ Relevo: ${j.horasRelevo} h` : ''}
+  ${j.horasRemate ? `<br>🔧 Remate: ${j.horasRemate} h` : ''}
+</div>
     <div class="right">
       <strong>${total(j).toFixed(2)} €</strong>
       <button data-edit="${j.id}">✏️</button>
@@ -480,21 +484,31 @@ p.addEventListener('input', actualizarPreview);
     const s = load();
     const tipo = detectarTipoDia(f.value, jornada.value);
 
-    s.jornales.push({
+    const resultado = calcularPreviewCompleto({
+  jornada: jornada.value,
+  tipoDia: tipo,
+  especialidad: especialidad.value,
+  movimientos: +mov.value || 0,
+  barrasTrinca: +barras.value || 0,
+  tipoTrinca: tipoTrinca.value,
+  horasRelevo: +relevo.value || 0,
+  horasRemate: +remate.value || 0,
+  precioBase: +p.value || 0
+});
+
+s.jornales.push({
   id: Date.now(),
   fecha: f.value,
-  precio: +p.value,
+  precio: +p.value || 0,
 
   movimientos: +mov.value || 0,
-
-  // NUEVO (por ahora a 0)
   barrasTrinca: +barras.value || 0,
-tipoTrinca: tipoTrinca.value || null,
-horasRelevo: +relevo.value || 0,
-horasRemate: +remate.value || 0,
+  tipoTrinca: tipoTrinca.value || null,
+  horasRelevo: +relevo.value || 0,
+  horasRemate: +remate.value || 0,
 
   tipoDia: tipo,
-  prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
+  prima: resultado.primaMov + resultado.primaTrinca, // 🔥 CLAVE
   irpf: +i.value || 0,
 
   jornada: jornada.value,
