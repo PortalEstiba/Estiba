@@ -299,6 +299,7 @@ function abrirModalNuevoJornal() {
     <select id="relevo">
       <option value="0">Relevo: No</option>
       <option value="1">Relevo: 1h</option>
+      <option value="2">Relevo: 2h</option>
     </select>
 
     <!-- REMATE -->
@@ -328,10 +329,36 @@ requestAnimationFrame(() => {
   const p = document.getElementById('p');
   const i = document.getElementById('i');
   const especialidad = document.getElementById('especialidad');
+  const mov = document.getElementById('mov');
+const trincaFields = document.getElementById('trincaFields');
+const barras = document.getElementById('barras');
+const tipoTrinca = document.getElementById('tipoTrinca');
+const relevo = document.getElementById('relevo');
+const remate = document.getElementById('remate');
   const empresa = document.getElementById('empresa');
   const barco = document.getElementById('barco');
   const parte = document.getElementById('parte');
+function toggleCamposPorEspecialidad() {
+  const esp = especialidad.value;
 
+  const esTrinca =
+    esp === 'Trinca' ||
+    esp === 'Trinca de Coches';
+
+  if (esTrinca) {
+    mov.classList.add('hidden');
+    trincaFields.classList.remove('hidden');
+  } else {
+    mov.classList.remove('hidden');
+    trincaFields.classList.add('hidden');
+  }
+}
+especialidad.addEventListener('change', () => {
+  toggleCamposPorEspecialidad();
+  actualizarPreview();
+});
+
+toggleCamposPorEspecialidad();
   function actualizarPreview() {
     if (!f.value) {
       preview.textContent = 'Selecciona fecha';
