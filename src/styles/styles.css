@@ -246,3 +246,19 @@ input, select{
 .modal-content .prima-preview {
   width: 100%;
 }
+/* ============================
+   FIX OVERFLOW INPUTS iOS
+   ============================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+.modal-content {
+  overflow-x: hidden;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content button {
+  max-width: 100%;
+}
