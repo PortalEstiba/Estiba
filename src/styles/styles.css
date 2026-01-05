@@ -530,3 +530,18 @@ input, select{
 .modal-content button {
   max-width: 100%;
 }
+.modal-content {
+  transform: translateY(0);
+  animation: modalUp .25s ease-out;
+}
+
+@keyframes modalUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
