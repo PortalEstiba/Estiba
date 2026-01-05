@@ -227,7 +227,6 @@ function render(container){
     <div class="card">
       <h3>📅 Quincena 1 (1–15)</h3>
 <div id="vista-quincena-1"></div>
-      ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
       <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
     </div>
@@ -235,7 +234,6 @@ function render(container){
     <div class="card">
       <h3>📅 Quincena 2 (16–fin)</h3>
 <div id="vista-quincena-2"></div>
-      ${q2.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
       <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
     </div>
