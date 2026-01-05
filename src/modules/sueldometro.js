@@ -1,6 +1,6 @@
 // src/modules/sueldometro.js
 // Sueldómetro v11.4 — Editar y borrar jornales SIN perder funciones
-alert('sueldometro.js cargado');
+
 import { exportCSV, exportPDF } from './exporter.js';
 
 const STORAGE_KEY = 'sueldometro_v11';
@@ -726,6 +726,18 @@ document.addEventListener('click', (e) => {
       render(document.getElementById('page-sueldometro'));
     };
   }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('page-sueldometro');
+  if (!container) {
+    console.error('❌ No existe #page-sueldometro');
+    return;
+  }
+  render(container);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  render(document.getElementById('page-sueldometro'));
 });
 
 console.log('✅ sueldometro.js cargado');
