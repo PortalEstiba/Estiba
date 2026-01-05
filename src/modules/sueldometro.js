@@ -146,7 +146,9 @@ function resumen(arr){
   });
   return {bruto,neto,count:arr.length};
 }
-
+function createQuincenaCard(year, month, quincena, jornales) {
+  // 👈 pega aquí EXACTAMENTE el código que me has pasado
+}
 function render(container){
   const s=load();
 
