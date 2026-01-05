@@ -294,15 +294,15 @@ function createQuincenaCard(year, month, quincena, jornales) {
         ${j.horasRelevo ? `<br>⏱️ Relevo: ${j.horasRelevo} h` : ''}
         ${j.horasRemate ? `<br>🔧 Remate: ${j.horasRemate} h` : ''}
       </div>
-    </div>   
-    `).join('') || '<p class="muted">Sin jornales</p>';
-    
+    </div>
+
     <div class="right">
       <strong>${total(j).toFixed(2)} €</strong>
       <button data-edit="${j.id}">✏️</button>
       <button data-del="${j.id}" class="danger">🗑️</button>
     </div>
   </div>
+`).join('') || '<p class="muted">Sin jornales</p>';
 
   header.onclick = () => {
     body.style.display = body.style.display === 'none' ? 'block' : 'none';
