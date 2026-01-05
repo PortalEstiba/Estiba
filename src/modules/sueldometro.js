@@ -225,6 +225,9 @@ function abrirModalNuevoJornal() {
   `;
 
   modal.classList.remove('hidden');
+requestAnimationFrame(() => {
+  modal.classList.add('active');
+});
 
   const f = document.getElementById('f');
   const mov = document.getElementById('mov');
@@ -478,7 +481,14 @@ fab?.addEventListener('click', () => {
   };
 });
 
-closeBtn?.addEventListener('click',()=>modal.classList.add('hidden'));
+closeBtn?.addEventListener('click', () => {
+  modal.classList.remove('active');
+  setTimeout(() => {
+    modal.classList.remove('active');
+setTimeout(() => {
+  modal.classList.add('hidden');
+}, 300);
+});
 
 // ================================
 // EDITAR Y BORRAR JORNALES (FIX)
