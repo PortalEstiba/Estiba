@@ -170,16 +170,18 @@ function createQuincenaCard(year, month, quincena, jornales) {
   body.style.marginTop = '10px';
 
   body.innerHTML = jornales.map(j => `
-    <div class="row">
-      <div>
-        <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
-        <div class="muted">${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}</div>
-      </div>
-      <div class="right">
-        <strong>${total(j).toFixed(2)} €</strong>
-      </div>
+  <div class="row">
+    <div>
+      <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
+      <div class="muted">${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}</div>
     </div>
-  `).join('') || '<p class="muted">Sin jornales</p>';
+    <div class="right">
+      <strong>${total(j).toFixed(2)} €</strong>
+      <button data-edit="${j.id}">✏️</button>
+      <button data-del="${j.id}" class="danger">🗑️</button>
+    </div>
+  </div>
+`).join('') || '<p class="muted">Sin jornales</p>';
 
   header.onclick = () => {
     body.style.display = body.style.display === 'none' ? 'block' : 'none';
