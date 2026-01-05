@@ -210,6 +210,58 @@ function calcularRemate(jornada, tipoDia, horas) {
 
   return horas * tarifa;
 }
+function calcularPreviewCompleto({
+  jornada,
+  tipoDia,
+  especialidad,
+  movimientos,
+  barrasTrinca,
+  tipoTrinca,
+  horasRelevo,
+  horasRemate,
+  precioBase
+}) {
+  let primaMov = 0;
+  let primaTrinca = 0;
+
+  const esTrinca =
+    especialidad === 'Trinca' ||
+    especialidad === 'Trinca de Coches';
+
+  if (esTrinca) {
+    primaTrinca = calcularPrimaTrinca(
+      jornada,
+      tipoDia,
+      barrasTrinca,
+      tipoTrinca
+    );
+  } else {
+    primaMov = calcularPrima(
+      jornada,
+      tipoDia,
+      movimientos
+    );
+  }
+
+  const relevo = calcularRelevo(jornada, tipoDia, horasRelevo);
+  const remate = calcularRemate(jornada, tipoDia, horasRemate);
+
+  const total =
+    (precioBase || 0) +
+    primaMov +
+    primaTrinca +
+    relevo +
+    remate;
+
+  return {
+    primaMov,
+    primaTrinca,
+    relevo,
+    remate,
+    total
+  };
+}
+
 function createQuincenaCard(year, month, quincena, jornales) {
   const rangoInicio = quincena === 1 ? 1 : 16;
   const rangoFin = quincena === 1 ? 15 : new Date(year, month, 0).getDate();
@@ -363,19 +415,43 @@ trincaFields.classList.add('hidden');
 
 toggleCamposPorEspecialidad();
   function actualizarPreview() {
-    if (!f.value) {
-      preview.textContent = 'Selecciona fecha';
-      return;
-    }
-    const movimientos = +mov.value || 0;
-    const tipo = detectarTipoDia(f.value, jornada.value);
-    const prima = calcularPrima(jornada.value, tipo, movimientos);
-    preview.textContent = `Tipo: ${tipo} · Prima: ${prima.toFixed(2)} €`;
+  if (!f.value) {
+    preview.textContent = 'Selecciona fecha';
+    return;
   }
+
+  const tipoDia = detectarTipoDia(f.value, jornada.value);
+
+  const data = calcularPreviewCompleto({
+    jornada: jornada.value,
+    tipoDia,
+    especialidad: especialidad.value,
+    movimientos: +mov.value || 0,
+    barrasTrinca: +barras.value || 0,
+    tipoTrinca: tipoTrinca.value,
+    horasRelevo: +relevo.value || 0,
+    horasRemate: +remate.value || 0,
+    precioBase: +p.value || 0
+  });
+
+  preview.innerHTML = `
+    <strong>Tipo:</strong> ${tipoDia}<br>
+    <strong>Prima:</strong> ${data.primaMov.toFixed(2)} €<br>
+    <strong>Trinca:</strong> ${data.primaTrinca.toFixed(2)} €<br>
+    <strong>Relevo:</strong> ${data.relevo.toFixed(2)} €<br>
+    <strong>Remate:</strong> ${data.remate.toFixed(2)} €<br>
+    <strong>Total:</strong> ${data.total.toFixed(2)} €
+  `;
+}
 
   f.addEventListener('change', actualizarPreview);
   mov.addEventListener('input', actualizarPreview);
   jornada.addEventListener('change', actualizarPreview);
+  barras.addEventListener('input', actualizarPreview);
+tipoTrinca.addEventListener('change', actualizarPreview);
+relevo.addEventListener('change', actualizarPreview);
+remate.addEventListener('change', actualizarPreview);
+p.addEventListener('input', actualizarPreview);
 
   document.getElementById('guardar').onclick = () => {
     const s = load();
