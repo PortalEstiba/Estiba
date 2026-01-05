@@ -728,4 +728,5 @@ document.addEventListener('click', (e) => {
   }
 });
 
+console.log('✅ sueldometro.js cargado');
 export default { render };
