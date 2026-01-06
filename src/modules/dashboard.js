@@ -55,19 +55,18 @@ async function cargarPuertas() {
     const res = await fetch(PUERTAS_URL);
     const text = await res.text();
 
-    const json = JSON.parse(
-      text.substring(
-        text.indexOf('{'),
-        text.lastIndexOf('}') + 1
-      )
-    );
+    // Google Sheets wrapper FIX (iOS compatible)
+    const match = text.match(/setResponse\(([\s\S]*?)\);/);
+    if (!match || !match[1]) throw new Error('Formato no válido');
+
+    const json = JSON.parse(match[1]);
 
     const rows = json.table.rows;
 
     const puertas = rows.map(r => ({
       jornada: r.c[0]?.v ?? '',
-      sp: r.c[1]?.v ?? '—',
-      oc: r.c[2]?.v ?? '—'
+      sp: r.c[1]?.v ?? '— No contratada',
+      oc: r.c[2]?.v ?? '— No contratada'
     }));
 
     card.innerHTML = `
@@ -84,8 +83,8 @@ async function cargarPuertas() {
           ${puertas.map(p => `
             <tr>
               <td>${p.jornada}</td>
-              <td class="sp">${p.sp || '— No contratada'}</td>
-              <td class="oc">${p.oc || '— No contratada'}</td>
+              <td class="${p.sp.includes('No') ? 'no' : 'sp'}">${p.sp}</td>
+              <td class="${p.oc.includes('No') ? 'no' : 'oc'}">${p.oc}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -94,7 +93,10 @@ async function cargarPuertas() {
     `;
   } catch (e) {
     console.error(e);
-    card.innerHTML = '<p class="error">❌ Error cargando puertas</p>';
+    card.innerHTML = `
+      <h3>🚪 Puertas del Día</h3>
+      <p class="error">❌ Error cargando puertas</p>
+    `;
   }
 }
 
