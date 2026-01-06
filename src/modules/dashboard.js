@@ -112,14 +112,14 @@ export default {
 
     container.innerHTML = `
       <div class="card">
-  <h2>Bienvenido/a</h2>
-  <p>Aplicación creada solamente para un sueldómetro y oraculo gratuito.</p>
-</div>
+        <h2>Bienvenido/a</h2>
+        <p>Aplicación creada solamente para un sueldómetro y oraculo gratuito.</p>
+      </div>
 
-<div class="card" id="puertas-card">
-  <h3>🚪 Puertas del Día</h3>
-  <p class="muted">Cargando puertas…</p>
-</div>
+      <div class="card" id="puertas-card">
+        <h3>🚪 Puertas del Día</h3>
+        <p class="muted">Cargando puertas…</p>
+      </div>
 
       ${categorias.map(cat => `
         <div class="card">
@@ -136,9 +136,16 @@ export default {
         </div>
       `).join('')}
     `;
+
+    // 🔥 AQUÍ ES DONDE TIENE QUE IR
+    cargarPuertas();
+
+    // refresco cada 5 min
+    if (!window.__puertasInterval) {
+      window.__puertasInterval = setInterval(
+        cargarPuertas,
+        5 * 60 * 1000
+      );
+    }
   }
 };
-setTimeout(() => {
-  cargarPuertas();
-  setInterval(cargarPuertas, 5 * 60 * 1000);
-}, 0);
