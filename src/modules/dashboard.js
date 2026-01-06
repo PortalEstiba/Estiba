@@ -45,7 +45,7 @@ const ENLACES_DATA = [
 // ================================
 
 const PUERTAS_URL =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/gviz/tq?tqx=out:json&gid=3770623';
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pub?gid=3770623&single=true&output=csv';
   
 async function cargarPuertas() {
   const card = document.getElementById('puertas-card');
@@ -53,25 +53,18 @@ async function cargarPuertas() {
 
   try {
     const res = await fetch(PUERTAS_URL);
-    const text = await res.text();
+    const csv = await res.text();
 
-    let json;
+    const lines = csv.trim().split('\n').slice(1);
 
-    try {
-      json = JSON.parse(text);
-    } catch {
-      const match = text.match(/setResponse\(([\s\S]*?)\);/);
-      if (!match || !match[1]) throw new Error('Formato no válido');
-      json = JSON.parse(match[1]);
-    }
-
-    const rows = json.table.rows;
-
-    const puertas = rows.map(r => ({
-      jornada: r.c[0]?.v ?? '',
-      sp: r.c[1]?.v ?? '— No contratada',
-      oc: r.c[2]?.v ?? '— No contratada'
-    }));
+    const puertas = lines.map(l => {
+      const [jornada, sp, oc] = l.split(',');
+      return {
+        jornada,
+        sp: sp || '— No contratada',
+        oc: oc || '— No contratada'
+      };
+    });
 
     card.innerHTML = `
       <h3>🚪 Puertas del Día</h3>
@@ -87,8 +80,8 @@ async function cargarPuertas() {
           ${puertas.map(p => `
             <tr>
               <td>${p.jornada}</td>
-              <td class="${p.sp.toString().includes('No') ? 'no' : 'sp'}">${p.sp}</td>
-              <td class="${p.oc.toString().includes('No') ? 'no' : 'oc'}">${p.oc}</td>
+              <td class="${p.sp.includes('No') ? 'no' : 'sp'}">${p.sp}</td>
+              <td class="${p.oc.includes('No') ? 'no' : 'oc'}">${p.oc}</td>
             </tr>
           `).join('')}
         </tbody>
