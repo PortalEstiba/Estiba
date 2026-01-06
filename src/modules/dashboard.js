@@ -45,8 +45,8 @@ const ENLACES_DATA = [
 // ================================
 
 const PUERTAS_URL =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/gviz/tq?gid=3770623';
-
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/gviz/tq?tqx=out:json&gid=3770623';
+  
 async function cargarPuertas() {
   const card = document.getElementById('puertas-card');
   if (!card) return;
