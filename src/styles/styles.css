@@ -667,6 +667,35 @@ input, select{
   -webkit-appearance: none;
   padding-right: 14px; /* evita que el icono sobresalga */
 }
+
 .hidden {
   display: none !important;
+}
+
+.puertas-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+.puertas-table th,
+.puertas-table td {
+  padding: 8px;
+  text-align: center;
+}
+
+.puertas-table .sp {
+  background: #2ecc71;
+  color: white;
+  border-radius: 8px;
+}
+
+.puertas-table .oc {
+  background: #3498db;
+  color: white;
+  border-radius: 8px;
+}
+
+.error {
+  color: red;
 }
