@@ -40,6 +40,64 @@ const ENLACES_DATA = [
   { titulo: 'Comunicación Contingencia', url: 'https://docs.google.com/forms/d/e/1FAIpQLSdxLm9xqP4FOv61h3-YoyRFzkxKcfAGir_YYRi5e4PTFisEAw/viewform', categoria: 'Comunicaciones', color: 'purple' }
 ];
 
+// ================================
+// PUERTAS DEL DÍA (Dashboard)
+// ================================
+
+const PUERTAS_URL =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/gviz/tq?gid=3770623';
+
+async function cargarPuertas() {
+  const card = document.getElementById('puertas-card');
+  if (!card) return;
+
+  try {
+    const res = await fetch(PUERTAS_URL);
+    const text = await res.text();
+
+    const json = JSON.parse(
+      text.substring(
+        text.indexOf('{'),
+        text.lastIndexOf('}') + 1
+      )
+    );
+
+    const rows = json.table.rows;
+
+    const puertas = rows.map(r => ({
+      jornada: r.c[0]?.v ?? '',
+      sp: r.c[1]?.v ?? '—',
+      oc: r.c[2]?.v ?? '—'
+    }));
+
+    card.innerHTML = `
+      <h3>🚪 Puertas del Día</h3>
+      <table class="puertas-table">
+        <thead>
+          <tr>
+            <th>Jornada</th>
+            <th>Puerta SP</th>
+            <th>Puerta OC</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${puertas.map(p => `
+            <tr>
+              <td>${p.jornada}</td>
+              <td class="sp">${p.sp || '— No contratada'}</td>
+              <td class="oc">${p.oc || '— No contratada'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <p class="muted">Actualizado automáticamente</p>
+    `;
+  } catch (e) {
+    console.error(e);
+    card.innerHTML = '<p class="error">❌ Error cargando puertas</p>';
+  }
+}
+
 export default {
   render(container) {
     if (!container) return;
@@ -48,9 +106,14 @@ export default {
 
     container.innerHTML = `
       <div class="card">
-        <h2>Bienvenido/a</h2>
-        <p>Aplicación creada solamente para un sueldómetro y oraculo gratuito.</p>
-      </div>
+  <h2>Bienvenido/a</h2>
+  <p>Aplicación creada solamente para un sueldómetro y oraculo gratuito.</p>
+</div>
+
+<div class="card" id="puertas-card">
+  <h3>🚪 Puertas del Día</h3>
+  <p class="muted">Cargando puertas…</p>
+</div>
 
       ${categorias.map(cat => `
         <div class="card">
@@ -69,3 +132,7 @@ export default {
     `;
   }
 };
+setTimeout(() => {
+  cargarPuertas();
+  setInterval(cargarPuertas, 5 * 60 * 1000);
+}, 0);
