@@ -2,6 +2,9 @@
 // Sueldómetro v11.4 — Editar y borrar jornales SIN perder funciones
 
 import { exportCSV, exportPDF } from './exporter.js';
+const modal = document.getElementById('modalJornal');
+const closeBtn = document.getElementById('closeModal');
+const modalContainer = document.getElementById('modalFormContainer');
 
 const STORAGE_KEY = 'sueldometro_v11';
 
@@ -649,9 +652,6 @@ if (s.vista === 'quincena') {
    ================================ */
 
 const fab = document.getElementById('fabAddJornal');
-const modal = document.getElementById('modalJornal');
-const closeBtn = document.getElementById('closeModal');
-const modalContainer = document.getElementById('modalFormContainer');
 
 closeBtn?.addEventListener('click', () => {
   modal.classList.remove('active');
@@ -709,9 +709,10 @@ document.addEventListener('click', (e) => {
     modal.classList.remove('hidden');
 
     document.getElementById('guardarEdit').onclick = () => {
-      j.fecha = f.value;
-      j.precio = +p.value;
-      j.movimientos = +mov.value || 0;
+      j.fecha = document.getElementById('f').value;
+      j.precio = +document.getElementById('p').value || 0;
+      j.movimientos = +document.getElementById('mov').value || 0;
+      j.irpf = +document.getElementById('i').value || 0;
       j.tipoDia = tipoDia.value;
       j.prima = calcularPrima(j.jornada, j.tipoDia, j.movimientos);
       j.irpf = +i.value;
@@ -727,17 +728,11 @@ document.addEventListener('click', (e) => {
     };
   }
 });
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('page-sueldometro');
-  if (!container) {
-    console.error('❌ No existe #page-sueldometro');
-    return;
-  }
-  render(container);
-});
 
 document.addEventListener('DOMContentLoaded', () => {
-  render(document.getElementById('page-sueldometro'));
+  const container = document.getElementById('page-sueldometro');
+  if (!container) return;
+  render(container);
 });
 
 console.log('✅ sueldometro.js cargado');
