@@ -2,9 +2,6 @@
 // Sueldómetro v11.4 — Editar y borrar jornales SIN perder funciones
 
 import { exportCSV, exportPDF } from './exporter.js';
-const modal = document.getElementById('modalJornal');
-const closeBtn = document.getElementById('closeModal');
-const modalContainer = document.getElementById('modalFormContainer');
 
 const STORAGE_KEY = 'sueldometro_v11';
 
@@ -79,32 +76,6 @@ const PRIMAS = {
   }
 };
 
-// ================================
-// TARIFAS TRINCA / RELEVO / REMATE
-// ================================
-
-const TARIFAS_TRINCA = {
-  '02-08_LABORABLE_TRINCA': 0.55,
-  '02-08_LABORABLE_DESTRINCA': 0.60,
-
-  '08-14_LABORABLE_TRINCA': 0.45,
-  '08-14_LABORABLE_DESTRINCA': 0.50,
-
-  '20-02_FESTIVO_TRINCA': 1.10,
-  '20-02_FESTIVO_DESTRINCA': 1.20
-};
-
-const TARIFA_RELEVO = {
-  NORMAL: 64.31,
-  ESPECIAL: 93.55
-};
-
-const TARIFA_REMATE = {
-  '02-08_LABORABLE': 61.40,
-  '08-14_LABORABLE': 29.02,
-  '14-20_FESTIVO': 110.99,
-  '20-02_SABADO': 76.85
-};
 const defaultState = {
   mes: new Date().getMonth(),
   anio: new Date().getFullYear(),
@@ -115,14 +86,7 @@ const defaultState = {
 function load(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defaultState}catch{return defaultState}}
 function save(s){ localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 function q(f){ return new Date(f).getDate()<=15?'q1':'q2' }
-function total(j){
-  return (
-    j.precio
-    + (j.prima || 0)
-    + calcularRelevo(j.jornada, j.tipoDia, j.horasRelevo || 0)
-    + calcularRemate(j.jornada, j.tipoDia, j.horasRemate || 0)
-  );
-}
+function total(j){ return j.precio + (j.prima||0) }
 function detectarTipoDia(fecha, jornada) {
   const d = new Date(fecha + 'T00:00:00'); // fuerza mismo día local
   const diaSemana = d.getDay(); // 0 domingo, 6 sábado
@@ -182,352 +146,7 @@ function resumen(arr){
   });
   return {bruto,neto,count:arr.length};
 }
-function calcularPrimaTrinca(jornada, tipoDia, barras, tipoOperacion) {
-  if (!barras || barras <= 0) return 0;
 
-  const clave = `${jornada}_${tipoDia}_${tipoOperacion}`;
-  const tarifa = TARIFAS_TRINCA[clave] || 0;
-
-  return barras * tarifa;
-}
-
-function calcularRelevo(jornada, tipoDia, horas) {
-  if (!horas || horas === 0) return 0;
-
-  const esEspecial =
-    tipoDia.includes('FEST') ||
-    (tipoDia === 'SABADO' && (jornada === '14-20' || jornada === '20-02'));
-
-  const tarifa = esEspecial
-    ? TARIFA_RELEVO.ESPECIAL
-    : TARIFA_RELEVO.NORMAL;
-
-  return horas * tarifa;
-}
-
-function calcularRemate(jornada, tipoDia, horas) {
-  if (!horas || horas === 0) return 0;
-
-  const clave = `${jornada}_${tipoDia}`;
-  const tarifa = TARIFA_REMATE[clave] || 0;
-
-  return horas * tarifa;
-}
-function calcularPreviewCompleto({
-  jornada,
-  tipoDia,
-  especialidad,
-  movimientos,
-  barrasTrinca,
-  tipoTrinca,
-  horasRelevo,
-  horasRemate,
-  precioBase
-}) {
-  let primaMov = 0;
-  let primaTrinca = 0;
-
-  const esTrinca =
-    especialidad === 'Trinca' ||
-    especialidad === 'Trinca de Coches';
-
-  if (esTrinca) {
-    primaTrinca = calcularPrimaTrinca(
-      jornada,
-      tipoDia,
-      barrasTrinca,
-      tipoTrinca
-    );
-  } else {
-    primaMov = calcularPrima(
-      jornada,
-      tipoDia,
-      movimientos
-    );
-  }
-
-  const relevo = calcularRelevo(jornada, tipoDia, horasRelevo);
-  const remate = calcularRemate(jornada, tipoDia, horasRemate);
-
-  const total =
-    (precioBase || 0) +
-    primaMov +
-    primaTrinca +
-    relevo +
-    remate;
-
-  return {
-    primaMov,
-    primaTrinca,
-    relevo,
-    remate,
-    total
-  };
-}
-
-function createQuincenaCard(year, month, quincena, jornales) {
-  const rangoInicio = quincena === 1 ? 1 : 16;
-  const rangoFin = quincena === 1 ? 15 : new Date(year, month, 0).getDate();
-
-  const card = document.createElement('div');
-  card.className = 'card';
-
-  const header = document.createElement('div');
-  header.style.cursor = 'pointer';
-  header.style.display = 'flex';
-  header.style.justifyContent = 'space-between';
-  header.style.alignItems = 'center';
-
-  header.innerHTML = `
-    <strong>📅 ${rangoInicio}-${rangoFin}</strong>
-    <span class="muted">${jornales.length} jornales</span>
-  `;
-
-  const body = document.createElement('div');
-  body.style.display = 'none';
-  body.style.marginTop = '10px';
-
-  body.innerHTML = jornales.map(j => `
-  <div class="row">
-    <div>
-      <strong>${j.fecha}</strong> · ${j.jornada} · ${j.especialidad}
-      <div class="muted">
-        ${j.empresa} · ${j.barco || '-'} · Parte ${j.parte || '-'}
-        ${j.barrasTrinca ? `<br>🪢 Trinca: ${j.barrasTrinca} varillas (${j.tipoTrinca})` : ''}
-        ${j.horasRelevo ? `<br>⏱️ Relevo: ${j.horasRelevo} h` : ''}
-        ${j.horasRemate ? `<br>🔧 Remate: ${j.horasRemate} h` : ''}
-      </div>
-    </div>
-
-    <div class="right">
-      <strong>${total(j).toFixed(2)} €</strong>
-      <button data-edit="${j.id}">✏️</button>
-      <button data-del="${j.id}" class="danger">🗑️</button>
-    </div>
-  </div>
-`).join('') || '<p class="muted">Sin jornales</p>';
-
-  header.onclick = () => {
-    body.style.display = body.style.display === 'none' ? 'block' : 'none';
-  };
-
-  card.appendChild(header);
-  card.appendChild(body);
-
-  return card;
-}
-function abrirModalNuevoJornal() {
-  modalContainer.innerHTML = `
-  <div class="grid">
-
-    <input id="f" type="date">
-
-    <input id="p" type="number" placeholder="Precio €">
-
-    <!-- MOVIMIENTOS -->
-<input id="mov" type="number" placeholder="Movimientos">
-
-<!-- TRINCA (solo si especialidad = Trinca) -->
-<div id="trincaFields" class="hidden">
-  <input id="barras" type="number" placeholder="Varillas de trinca">
-
-  <select id="tipoTrinca">
-    <option value="">Tipo de trinca</option>
-    <option value="TRINCA">Trinca</option>
-    <option value="DESTRINCA">Destrinca</option>
-  </select>
-</div>
-
-    <!-- PREVIEW -->
-    <div id="primaPreview" class="prima-preview">
-      Selecciona fecha y jornada
-    </div>
-
-    <input id="i" type="number" placeholder="IRPF %">
-
-    <select id="jornada">
-      ${JORNADAS.map(x => `<option>${x}</option>`).join('')}
-    </select>
-
-    <select id="especialidad">
-      ${ESPECIALIDADES.map(x => `<option>${x}</option>`).join('')}
-    </select>
-
-    <select id="empresa">
-      ${EMPRESAS.map(x => `<option>${x}</option>`).join('')}
-    </select>
-
-    <!-- RELEVO -->
-    <select id="relevo">
-      <option value="0">Relevo: No</option>
-      <option value="1">Relevo: 1h</option>
-      <option value="2">Relevo: 2h</option>
-    </select>
-
-    <!-- REMATE -->
-    <select id="remate">
-      <option value="0">Remate: 0h</option>
-      <option value="1">Remate: 1h</option>
-      <option value="2">Remate: 2h</option>
-    </select>
-
-    <input id="barco" placeholder="Barco">
-    <input id="parte" placeholder="Parte">
-
-  </div>
-
-  <button id="guardar" class="primary">Guardar jornal</button>
-`;
-
-  modal.classList.remove('hidden');
-requestAnimationFrame(() => {
-  modal.classList.add('active');
-});
-
-  const f = document.getElementById('f');
-  const jornada = document.getElementById('jornada');
-  const preview = document.getElementById('primaPreview');
-  const p = document.getElementById('p');
-  const i = document.getElementById('i');
-  const especialidad = document.getElementById('especialidad');
-  const mov = document.getElementById('mov');
-const trincaFields = document.getElementById('trincaFields');
-const barras = document.getElementById('barras');
-const tipoTrinca = document.getElementById('tipoTrinca');
-const relevo = document.getElementById('relevo');
-const remate = document.getElementById('remate');
-  const empresa = document.getElementById('empresa');
-  const barco = document.getElementById('barco');
-  const parte = document.getElementById('parte');
-function toggleCamposPorEspecialidad() {
-  const esp = especialidad.value;
-
-  const esTrinca =
-    esp === 'Trinca' ||
-    esp === 'Trinca de Coches';
-
-  if (esTrinca) {
-    mov.classList.add('hidden');        // ocultar movimientos
-    trincaFields.classList.remove('hidden'); // mostrar trinca
-  } else {
-    mov.classList.remove('hidden');     // mostrar movimientos
-    trincaFields.classList.add('hidden');    // ocultar trinca
-  }
-}
-especialidad.addEventListener('change', () => {
-  toggleCamposPorEspecialidad();
-  actualizarPreview(); // opcional pero recomendable
-});
-// estado inicial limpio
-mov.classList.remove('hidden');
-trincaFields.classList.add('hidden');
-
-toggleCamposPorEspecialidad();
-  function actualizarPreview() {
-  if (!f.value) {
-    preview.textContent = 'Selecciona fecha';
-    return;
-  }
-
-  const tipoDia = detectarTipoDia(f.value, jornada.value);
-
-  // Precio base
-  const precio = +p.value || 0;
-
-  // MOVIMIENTOS
-  const movimientos = +mov.value || 0;
-  const prima = calcularPrima(jornada.value, tipoDia, movimientos);
-
-  // TRINCA
-  let trinca = 0;
-  if (!trincaFields.classList.contains('hidden')) {
-    trinca = calcularPrimaTrinca(
-      jornada.value,
-      tipoDia,
-      +barras.value || 0,
-      tipoTrinca.value
-    );
-  }
-
-  // RELEVO
-  const relevo€ = calcularRelevo(
-    jornada.value,
-    tipoDia,
-    +relevo.value || 0
-  );
-
-  // REMATE
-  const remate€ = calcularRemate(
-    jornada.value,
-    tipoDia,
-    +remate.value || 0
-  );
-
-  const totalPreview =
-    precio + prima + trinca + relevo€ + remate€;
-
-  preview.innerHTML = `
-    Tipo: ${tipoDia}<br>
-    Prima: ${prima.toFixed(2)} €<br>
-    Trinca: ${trinca.toFixed(2)} €<br>
-    Relevo: ${relevo€.toFixed(2)} €<br>
-    Remate: ${remate€.toFixed(2)} €<br>
-    <strong>Total: ${totalPreview.toFixed(2)} €</strong>
-  `;
-}
-
-  f.addEventListener('change', actualizarPreview);
-  mov.addEventListener('input', actualizarPreview);
-  jornada.addEventListener('change', actualizarPreview);
-  barras.addEventListener('input', actualizarPreview);
-tipoTrinca.addEventListener('change', actualizarPreview);
-relevo.addEventListener('change', actualizarPreview);
-remate.addEventListener('change', actualizarPreview);
-p.addEventListener('input', actualizarPreview);
-
-  document.getElementById('guardar').onclick = () => {
-    const s = load();
-    const tipo = detectarTipoDia(f.value, jornada.value);
-
-    const resultado = calcularPreviewCompleto({
-  jornada: jornada.value,
-  tipoDia: tipo,
-  especialidad: especialidad.value,
-  movimientos: +mov.value || 0,
-  barrasTrinca: +barras.value || 0,
-  tipoTrinca: tipoTrinca.value,
-  horasRelevo: +relevo.value || 0,
-  horasRemate: +remate.value || 0,
-  precioBase: +p.value || 0
-});
-
-s.jornales.push({
-  id: Date.now(),
-  fecha: f.value,
-  precio: +p.value || 0,
-
-  movimientos: +mov.value || 0,
-  barrasTrinca: +barras.value || 0,
-  tipoTrinca: tipoTrinca.value || null,
-  horasRelevo: +relevo.value || 0,
-  horasRemate: +remate.value || 0,
-
-  tipoDia: tipo,
-  prima: resultado.primaMov + resultado.primaTrinca, // 🔥 CLAVE
-  irpf: +i.value || 0,
-
-  jornada: jornada.value,
-  especialidad: especialidad.value,
-  empresa: empresa.value,
-  barco: barco.value,
-  parte: parte.value
-});
-
-    save(s);
-    modal.classList.add('hidden');
-    render(document.getElementById('page-sueldometro'));
-  };
-}
 function render(container){
   const s=load();
 
@@ -543,26 +162,14 @@ function render(container){
   const r1=resumen(q1);
   const r2=resumen(q2);
 
-  container.innerHTML = `
-  <div class="card sueldometro-header">
-    <div class="header-row">
-      <h2>💶 Sueldómetro</h2>
-      <button id="btnAddJornal" class="btn-add-jornal">
-        + Añadir
-      </button>
-    </div>
-
+  container.innerHTML=`
+  <div class="card">
+    <h2>📊 Vista ${s.vista === 'quincena' ? 'quincenal' : 'mensual'}</h2>
     <div class="grid">
       <label>Mes
-        <select id="mes">
-          ${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}
-        </select>
+        <select id="mes">${MONTHS.map((n,i)=>`<option value="${i}" ${i===s.mes?'selected':''}>${n}</option>`).join('')}</select>
       </label>
-
-      <label>Año
-        <input id="anio" type="number" value="${s.anio}">
-      </label>
-
+      <label>Año <input id="anio" type="number" value="${s.anio}"></label>
       <label>Vista
         <select id="vista">
           <option value="mensual" ${s.vista==='mensual'?'selected':''}>Mensual</option>
@@ -575,14 +182,14 @@ function render(container){
   ${s.vista === 'quincena' ? `
     <div class="card">
       <h3>📅 Quincena 1 (1–15)</h3>
-      <div id="vista-quincena-1"></div>
+      ${q1.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
       <p class="orange">Bruto: ${r1.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r1.neto.toFixed(2)} €</p>
     </div>
 
     <div class="card">
       <h3>📅 Quincena 2 (16–fin)</h3>
-      <div id="vista-quincena-2"></div>
+      ${q2.map(j=>fila(j)).join('')||'<p class="muted">Sin jornales</p>'}
       <p class="orange">Bruto: ${r2.bruto.toFixed(2)} €</p>
       <p class="green">Neto: ${r2.neto.toFixed(2)} €</p>
     </div>
@@ -600,31 +207,8 @@ function render(container){
     <button id="csv" class="primary">Exportar Excel</button>
     <button id="pdf">Exportar PDF</button>
   </div>
-`;
-const btnAdd = document.getElementById('btnAddJornal');
-if (btnAdd) {
-  btnAdd.onclick = () => {
-  abrirModalNuevoJornal();
-};
-}
-  
-// Render vista nueva de quincenas (tarjetas plegables)
-if (s.vista === 'quincena') {
-  const q1Container = document.getElementById('vista-quincena-1');
-  const q2Container = document.getElementById('vista-quincena-2');
+  `;
 
-  if (q1Container) {
-    q1Container.appendChild(
-      createQuincenaCard(s.anio, s.mes + 1, 1, q1)
-    );
-  }
-
-  if (q2Container) {
-    q2Container.appendChild(
-      createQuincenaCard(s.anio, s.mes + 1, 2, q2)
-    );
-  }
-}
   function fila(j){
     return `<div class="row">
       <div>
@@ -652,13 +236,85 @@ if (s.vista === 'quincena') {
    ================================ */
 
 const fab = document.getElementById('fabAddJornal');
+const modal = document.getElementById('modalJornal');
+const closeBtn = document.getElementById('closeModal');
+const modalContainer = document.getElementById('modalFormContainer');
 
-closeBtn?.addEventListener('click', () => {
-  modal.classList.remove('active');
-  setTimeout(() => {
+fab?.addEventListener('click', () => {
+  modalContainer.innerHTML = `
+    <div class="grid">
+      <input id="f" type="date">
+      <input id="p" type="number" placeholder="Precio €">
+      <input id="mov" type="number" placeholder="Movimientos">
+      <div id="primaPreview" class="prima-preview muted">
+        Selecciona fecha y jornada
+      </div>
+      <input id="i" type="number" placeholder="IRPF %">
+      <select id="jornada">${JORNADAS.map(x=>`<option>${x}</option>`).join('')}</select>
+      <select id="especialidad">${ESPECIALIDADES.map(x=>`<option>${x}</option>`).join('')}</select>
+      <select id="empresa">${EMPRESAS.map(x=>`<option>${x}</option>`).join('')}</select>
+      <input id="barco" placeholder="Barco">
+      <input id="parte" placeholder="Parte">
+    </div>
+    <button id="guardar" class="primary">Guardar jornal</button>
+  `;
+
+  modal.classList.remove('hidden');
+
+  const f = document.getElementById('f');
+  const p = document.getElementById('p');
+  const mov = document.getElementById('mov');
+  const jornada = document.getElementById('jornada');
+  const preview = document.getElementById('primaPreview');
+  const i = document.getElementById('i');
+  const especialidad = document.getElementById('especialidad');
+  const empresa = document.getElementById('empresa');
+  const barco = document.getElementById('barco');
+  const parte = document.getElementById('parte');
+
+  function actualizarPreview() {
+  if (!f.value) {
+    preview.textContent = 'Selecciona fecha';
+    return;
+  }
+
+  const movimientos = +mov.value || 0;
+  const tipo = detectarTipoDia(f.value, jornada.value);
+  const prima = calcularPrima(jornada.value, tipo, movimientos);
+
+  preview.textContent = `Tipo: ${tipo} · Prima: ${prima.toFixed(2)} €`;
+}
+
+  f.addEventListener('change', actualizarPreview);
+  mov.addEventListener('input', actualizarPreview);
+  jornada.addEventListener('change', actualizarPreview);
+
+  document.getElementById('guardar').onclick = () => {
+    const s = load();
+    const tipo = detectarTipoDia(f.value, jornada.value);
+
+    s.jornales.push({
+      id: Date.now(),
+      fecha: f.value,
+      precio: +p.value,
+      movimientos: +mov.value || 0,
+      tipoDia: tipo,
+      prima: calcularPrima(jornada.value, tipo, +mov.value || 0),
+      irpf: +i.value || 0,
+      jornada: jornada.value,
+      especialidad: especialidad.value,
+      empresa: empresa.value,
+      barco: barco.value,
+      parte: parte.value
+    });
+
+    save(s);
     modal.classList.add('hidden');
-  }, 300);
+    render(document.getElementById('page-sueldometro'));
+  };
 });
+
+closeBtn?.addEventListener('click',()=>modal.classList.add('hidden'));
 
 // ================================
 // EDITAR Y BORRAR JORNALES (FIX)
@@ -709,10 +365,9 @@ document.addEventListener('click', (e) => {
     modal.classList.remove('hidden');
 
     document.getElementById('guardarEdit').onclick = () => {
-      j.fecha = document.getElementById('f').value;
-      j.precio = +document.getElementById('p').value || 0;
-      j.movimientos = +document.getElementById('mov').value || 0;
-      j.irpf = +document.getElementById('i').value || 0;
+      j.fecha = f.value;
+      j.precio = +p.value;
+      j.movimientos = +mov.value || 0;
       j.tipoDia = tipoDia.value;
       j.prima = calcularPrima(j.jornada, j.tipoDia, j.movimientos);
       j.irpf = +i.value;
@@ -729,11 +384,4 @@ document.addEventListener('click', (e) => {
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('page-sueldometro');
-  if (!container) return;
-  render(container);
-});
-
-console.log('✅ sueldometro.js cargado');
 export default { render };
