@@ -57,37 +57,66 @@ async function cargarPuertas() {
 
     const lines = csv.trim().split('\n').slice(1);
 
-    const puertas = lines.map(l => {
-      const [jornada, sp, oc] = l.split(',');
-      return {
-        jornada,
-        sp: sp || '— No contratada',
-        oc: oc || '— No contratada'
-      };
-    });
+    const puertas = lines
+    .map(l => {
+    const [jornada, sp, oc] = l.split(',');
+    return {
+      jornada: jornada?.trim(),
+      sp: sp?.trim() || '— No contratada',
+      oc: oc?.trim() || '— No contratada'
+    };
+  })
+  .filter(p =>
+    ['02-08', '08-14', '14-20', '20-02', 'Festivo'].includes(p.jornada)
+  );
+const laborables = puertas.filter(p => p.jornada !== 'Festivo');
+const festivo = puertas.find(p => p.jornada === 'Festivo');
 
     card.innerHTML = `
-      <h3>🚪 Puertas del Día</h3>
-      <table class="puertas-table">
-        <thead>
-          <tr>
-            <th>Jornada</th>
-            <th>Puerta SP</th>
-            <th>Puerta OC</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${puertas.map(p => `
-            <tr>
-              <td>${p.jornada}</td>
-              <td class="${p.sp.includes('No') ? 'no' : 'sp'}">${p.sp}</td>
-              <td class="${p.oc.includes('No') ? 'no' : 'oc'}">${p.oc}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-      <p class="muted">Actualizado automáticamente</p>
-    `;
+  <h3>🚪 Puertas del Día</h3>
+
+  <h4>📋 Puertas Laborables</h4>
+  <table class="puertas-table">
+    <thead>
+      <tr>
+        <th>Jornada</th>
+        <th>Puerta SP</th>
+        <th>Puerta OC</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${laborables.map(p => `
+        <tr>
+          <td>${p.jornada}</td>
+          <td class="${p.sp.includes('No') ? 'no' : 'sp'}">${p.sp}</td>
+          <td class="${p.oc.includes('No') ? 'no' : 'oc'}">${p.oc}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+
+  ${festivo ? `
+    <h4>🎉 Puertas Festivas</h4>
+    <table class="puertas-table festivo">
+      <thead>
+        <tr>
+          <th>Jornada</th>
+          <th>Puerta SP</th>
+          <th>Puerta OC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Festivo</td>
+          <td class="sp">${festivo.sp}</td>
+          <td class="oc">${festivo.oc}</td>
+        </tr>
+      </tbody>
+    </table>
+  ` : ''}
+
+  <p class="muted">Actualizado automáticamente</p>
+`;
   } catch (e) {
     console.error('Puertas error:', e);
     card.innerHTML = `
