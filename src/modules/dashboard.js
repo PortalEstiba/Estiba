@@ -55,17 +55,22 @@ async function cargarPuertas() {
     const res = await fetch(PUERTAS_URL);
     const csv = await res.text();
 
-    const lines = csv.trim().split('\n').slice(1);
+const lines = csv.trim().split('\n');
 
-    const puertas = lines
-    .map(l => {
-    const [jornada, sp, oc] = l.split(',');
-    return {
-      jornada: jornada?.trim(),
-      sp: sp?.trim() || '— No contratada',
-      oc: oc?.trim() || '— No contratada'
-    };
-  })
+// quitar cabecera
+lines.shift();
+
+const puertas = lines.map(line => {
+  // elimina comillas y separa bien
+  const clean = line.replace(/"/g, '');
+  const parts = clean.split(',');
+
+  return {
+    jornada: parts[0]?.trim(),
+    sp: parts[1]?.trim() || '— No contratada',
+    oc: parts[2]?.trim() || '— No contratada'
+  };
+});
   .filter(p =>
     ['02-08', '08-14', '14-20', '20-02', 'Festivo'].includes(p.jornada)
   );
