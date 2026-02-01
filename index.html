@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Estiba</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div id="app">
+    <section id="dashboard" class="page active"></section>
+    <section id="sueldometro" class="page"></section>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('dashboard')">
+      <span class="icon">🏠</span>
+      <span class="label">Dashboard</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('sueldometro')">
+      <span class="icon">💰</span>
+      <span class="label">Sueldómetro</span>
+    </button>
+  </nav>
+
+  <script src="dashboard.js"></script>
+  <script src="sueldometro.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
