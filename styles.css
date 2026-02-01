@@ -700,11 +700,27 @@ input, select{
   color: red;
 }
 
-#app,
-.main,
-.view,
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* contenedor principal */
+#app {
+  height: calc(100vh - 72px); /* altura menos bottom-nav */
+  overflow: hidden;
+}
+
+/* páginas */
 .page {
-  height: 100vh;
+  display: none;
+  height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 16px;
+}
+
+.page.active {
+  display: block;
 }
