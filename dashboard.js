@@ -47,8 +47,8 @@ const ENLACES_DATA = [
 const PUERTAS_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pub?gid=3770623&single=true&output=csv';
   
-async function cargarPuertas() {
-  const card = document.getElementById('puertas-card');
+async function cargarPuertas(container) {
+  const card = container.querySelector('#puertas-card');
   if (!card) return;
 
   try {
@@ -165,14 +165,14 @@ export default {
     `;
 
     // 🔥 AQUÍ ES DONDE TIENE QUE IR
-    cargarPuertas();
+    cargarPuertas(container);
 
     // refresco cada 5 min
     if (!window.__puertasInterval) {
       window.__puertasInterval = setInterval(
-        cargarPuertas,
-        5 * 60 * 1000
-      );
+  () => cargarPuertas(container),
+  5 * 60 * 1000
+     );
     }
   }
 };
