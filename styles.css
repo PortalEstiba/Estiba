@@ -724,3 +724,9 @@ html, body {
 .page.active {
   display: block;
 }
+
+.puertas-table .no {
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 8px;
+}
