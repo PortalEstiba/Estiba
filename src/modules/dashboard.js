@@ -60,17 +60,17 @@ const lines = csv.trim().split('\n');
 // quitar cabecera
 lines.shift();
 
-const puertas = lines.map(line => {
-  // elimina comillas y separa bien
-  const clean = line.replace(/"/g, '');
-  const parts = clean.split(',');
+const puertas = lines
+  .map(line => {
+    const clean = line.replace(/"/g, '');
+    const parts = clean.split(',');
 
-  return {
-    jornada: parts[0]?.trim(),
-    sp: parts[1]?.trim() || '— No contratada',
-    oc: parts[2]?.trim() || '— No contratada'
-  };
-});
+    return {
+      jornada: parts[0]?.trim(),
+      sp: parts[1]?.trim() || '— No contratada',
+      oc: parts[2]?.trim() || '— No contratada'
+    };
+  })
   .filter(p =>
     ['02-08', '08-14', '14-20', '20-02', 'Festivo'].includes(p.jornada)
   );
