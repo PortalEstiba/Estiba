@@ -310,7 +310,7 @@ fab?.addEventListener('click', () => {
 
     save(s);
     modal.classList.add('hidden');
-    render(document.getElementById('page-sueldometro'));
+    render(document.getElementById('sueldometro'));
   };
 });
 
@@ -320,7 +320,8 @@ closeBtn?.addEventListener('click',()=>modal.classList.add('hidden'));
 // EDITAR Y BORRAR JORNALES (FIX)
 // ================================
 
-document.addEventListener('click', (e) => {
+document.getElementById('sueldometro')
+  ?.addEventListener('click', (e) => {
   const s = load();
 
   // BORRAR
@@ -330,7 +331,7 @@ document.addEventListener('click', (e) => {
 
     s.jornales = s.jornales.filter(j => j.id !== id);
     save(s);
-    render(document.getElementById('page-sueldometro'));
+    render(document.getElementById('sueldometro'));
   }
 
   // EDITAR
@@ -362,24 +363,26 @@ document.addEventListener('click', (e) => {
       <button id="guardarEdit" class="primary">Actualizar jornal</button>
     `;
 
-    modal.classList.remove('hidden');
+    modal.classList.add('active');
+modal.classList.remove('hidden');
 
     document.getElementById('guardarEdit').onclick = () => {
       j.fecha = f.value;
       j.precio = +p.value;
       j.movimientos = +mov.value || 0;
       j.tipoDia = tipoDia.value;
+      j.jornada = jornada.value;
       j.prima = calcularPrima(j.jornada, j.tipoDia, j.movimientos);
       j.irpf = +i.value;
-      j.jornada = jornada.value;
       j.especialidad = especialidad.value;
       j.empresa = empresa.value;
       j.barco = barco.value;
       j.parte = parte.value;
 
       save(s);
-      modal.classList.add('hidden');
-      render(document.getElementById('page-sueldometro'));
+      modal.classList.add('active');
+modal.classList.remove('hidden');
+      render(document.getElementById('sueldometro'));
     };
   }
 });
