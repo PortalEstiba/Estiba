@@ -699,3 +699,12 @@ input, select{
 .error {
   color: red;
 }
+
+#app,
+.main,
+.view,
+.page {
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
